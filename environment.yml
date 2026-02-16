@@ -6,3 +6,5 @@ dependencies:
   - scipy
   - numpy
   - ipykernel
+  - matplotlib
+  - black
