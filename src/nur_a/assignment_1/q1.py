@@ -13,10 +13,32 @@ def Poisson(k: np.int32, lmbda: np.float32) -> np.float32:
     Returns:
         np.float32: The probability of observing k occurrences given the mean lmbda.
     """
-    # TODO:
-    # write your code here to calculate the Poisson probability
+    # we start with the gen form of posson distro P
+    # top = lmbda**k * np.exp(-lmbda)
+    # bot = np.prod(np.arange(1, k, 1))
+    # P = top / bottom
 
-    return 0.0
+    # we then rewrite P with log space to prevent over/underflow
+    # ln(P) = k ln(lmbda) - lmbda - ln(k!)
+    # with ln(k!) = sum(ln(i)) for i in range(1, k+1)
+    # P <-> ln(P) through np.exp()
+
+    # local dtype recheck
+    k = np.int32(k)
+    lmbda = np.float32(lmbda)
+
+    # special case if k = 0 -> k! = 1
+    if k == np.int32(0):
+        result = np.exp(-lmbda)
+
+    # log space rewrite P -> ln(P)
+    else:
+        log_factorial = sum(np.log(i) for i in range(1, k + 1, 1))
+        log_distro = k * np.log(lmbda) - log_factorial
+        # scale back ln(P) -> P
+        result = np.exp(log_distro)
+
+    return result
 
 
 def main() -> None:
@@ -29,7 +51,7 @@ def main() -> None:
         (np.float32(100.0), np.int32(5)),
         (np.float32(101.0), np.int32(200)),
     ]
-    with open("Poisson_output.txt", "w") as file:
+    with open("./output/poisson_output.txt", "w") as file:
         for i, (lmbda, k) in enumerate(values):
             P = Poisson(k, lmbda)
             if i < len(values) - 1:

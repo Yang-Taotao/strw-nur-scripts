@@ -14,4 +14,24 @@ General notes
 ## additional
 
 - scripts are written and tested under `conda` environment as specified through `environment.yml`
-- scripts can also be ran natively with base `python3` through terminal calls
+- scripts can also be ran natively with base `python3` through shell script `run_*.sh`
+
+## file structure
+
+```sh
+.
+├── src
+│   └── nur_a
+│       ├── assignment_1
+│       └── tutorial
+├── media
+├── notes
+├── data
+├── output
+├── plots
+├── tex
+├── run_assignment_1.sh
+├── environment.yml
+├── README.md
+└── LICENSE
+```

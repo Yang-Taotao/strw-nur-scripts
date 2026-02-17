@@ -7,7 +7,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
-
 # %% question 1
 # q1 - image load
 IMG = mpimg.imread("../../media/dog_image.jpg")

@@ -27,7 +27,9 @@ def load_data():
     y (np.ndarray): Array of y data points.
     """
     data = np.genfromtxt(
-        os.path.join(sys.path[0], "Vandermonde.txt"), comments="#", dtype=np.float64
+        os.path.join(sys.path[0], "./data/vandermonde.txt"),
+        comments="#",
+        dtype=np.float64,
     )
     x = data[:, 0]
     y = data[:, 1]
@@ -214,7 +216,7 @@ def plot_part_a(
     x_data: np.ndarray,
     y_data: np.ndarray,
     coeffs_c: np.ndarray,
-    plots_dir: str = "Plots",
+    plots_dir: str = "./plots",
 ) -> None:
     """
     Ploting routine for part (a) results.
@@ -265,7 +267,7 @@ def plot_part_a(
 def plot_part_b(
     x_data: np.ndarray,
     y_data: np.ndarray,
-    plots_dir: str = "Plots",
+    plots_dir: str = "./plots",
 ) -> None:
     """
     Ploting routine for part (b) results.
@@ -316,7 +318,7 @@ def plot_part_c(
     y_data: np.ndarray,
     coeffs_history: list[np.ndarray],
     iterations_num: list[int] = [0, 1, 10],
-    plots_dir: str = "Plots",
+    plots_dir: str = "./plots",
 ) -> None:
     """
     Ploting routine for part (c) results.
@@ -386,7 +388,7 @@ def plot_part_c(
 
 
 def main():
-    os.makedirs("Plots", exist_ok=True)
+    os.makedirs("./plots", exist_ok=True)
     x_data, y_data = load_data()
 
     # compute times
@@ -429,7 +431,7 @@ def main():
     plot_part_a(x_data, y_data, c_a)
 
     formatted_c = [f"{coef:.3e}" for coef in c_a]
-    with open("Coefficients_output.txt", "w", encoding="utf-8") as f:
+    with open("./output/coefficients_output.txt", "w", encoding="utf-8") as f:
         for i, coef in enumerate(formatted_c):
             f.write(f"c$_{i+1}$ = {coef}, ")
 
@@ -439,7 +441,7 @@ def main():
         x_data,
         y_data,
         iterations=11,
-        coeffs_output_path="Coefficients_per_iteration.txt",
+        coeffs_output_path="./output/coefficients_per_iteration.txt",
     )
     plot_part_c(x_data, y_data, coeffs_history, iterations_num=[0, 1, 10])
 
