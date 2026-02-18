@@ -20,22 +20,29 @@ def Poisson(k: np.int32, lmbda: np.float32) -> np.float32:
 
     # we then rewrite P with log space to prevent over/underflow
     # ln(P) = k ln(lmbda) - lmbda - ln(k!)
-    # with ln(k!) = sum(ln(i)) for i in range(1, k+1)
+    # with ln(k!) = sum(ln(i) for i in range(1, k+1))
     # P <-> ln(P) through np.exp()
 
-    # local dtype recheck
+    # break if k and lmbda doesn't match wanted dtype
+    if k.dtype != "int32" or lmbda.dtype != "float32":
+        raise TypeError(
+            f"No matching dtype with k.dtype {k.dtype}, lmbda.dtype {lmbda.dtype}"
+        )
+
+    # local dtype enforcement
     k = np.int32(k)
     lmbda = np.float32(lmbda)
 
     # special case if k = 0 -> k! = 1
     if k == np.int32(0):
         result = np.exp(-lmbda)
-
+    # break if k is neg
+    elif k < np.int32(0):
+        raise ValueError(f"Invalid k at negative value, k={k}.")
     # log space rewrite P -> ln(P)
     else:
-        log_factorial = sum(np.log(i) for i in range(1, k + 1, 1))
+        log_factorial = sum(np.log(np.arange(1, k, 1)))
         log_distro = k * np.log(lmbda) - log_factorial
-        # scale back ln(P) -> P
         result = np.exp(log_distro)
 
     return result

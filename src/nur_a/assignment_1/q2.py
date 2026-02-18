@@ -48,9 +48,24 @@ def construct_vandermonde_matrix(x: np.ndarray) -> np.ndarray:
     -------
     V : np.ndarray, Vandermonde matrix.
     """
-    # TODO:
-    # Replace with actual Vandermonde!
-    return np.zeros((len(x), len(x)), dtype=np.float64)
+    # init vandermonde mat at shape (len(x), len(x))
+    n = len(x)
+    v_mat = np.zeros((n, n), dtype=np.float64)
+
+    # assign val at elements with V(i,j) as x_i^j, first col == 1 by def
+    # 1st col == [1, 1, ...] Transpose -> V(0,0)=1.0
+    # 2nd col == [x_0, x_1, ...] Transpose -> V(1,0)=1.0*x_0
+    # 3rd col == [x_0**2, x_1**2, ...] Transpose -> V(2,0)=x_0**x_0
+    # efficient through col assignment by doing col_(j) = x**(j-1)
+    # alternative -> col_(j) = x * col_(j-1)
+    # with j=0 col assignment -> reducing n(operations) on each row with
+    for j in range(n):
+        if j == 0:
+            v_mat[:, j] = np.float64(1.0)
+        else:
+            v_mat[:, j] = x * v_mat[:, j - 1]
+
+    return v_mat
 
 
 def LU_decomposition(A: np.ndarray) -> np.ndarray:
@@ -70,8 +85,36 @@ def LU_decomposition(A: np.ndarray) -> np.ndarray:
     A : np.ndarray
         Decomposed array.
     """
-    # TODO:
-    # write your LU decomposition
+    n_row, n_col = A.shape
+    # error if not square
+    if n_row != n_col:
+        raise ValueError(
+            f"Abort with non-square matrix. Current shape ({A.shape[0]}, {A.shape[1]})."
+        )
+    # error if singular
+    if n_row == n_col == 1:
+        raise ValueError(
+            f"Abort with a singular matrix. Current shape ({A.shape[0]}, {A.shape[1]})."
+        )
+
+    # do gaussian elimination with mat element A(i,j)
+    # L -> terms with i > j
+    # U -> terms with i <= j
+    # LU -> combined L and U into one mat
+    # LU through crout's -> pivot -> loop over col k -> then row i
+    # last diag term does not need pivot
+    for k in range(n_col - 1):  # k in [0, n_col-1)
+        pivot = A[k, k]
+        # break if zero pivot
+        if pivot == np.float64(0.0):
+            raise ValueError(f"Found zero pivot, pivot({k}, {k}) = {pivot}.")
+        # do operation on whole row
+        for i in range(k + 1, n_col):  # i in [1, n_col)
+            # L(i,k) = A(i,k)/A(k,k), i>k
+            A[i, k] /= pivot
+            # update row -< reduce
+            A[i, k + 1 :] -= A[i, k] * A[k, k + 1 :]
+
     return A
 
 
