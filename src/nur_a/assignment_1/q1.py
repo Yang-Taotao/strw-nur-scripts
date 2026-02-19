@@ -41,8 +41,8 @@ def Poisson(k: np.int32, lmbda: np.float32) -> np.float32:
         raise ValueError(f"Invalid k at negative value, k={k}.")
     # log space rewrite P -> ln(P)
     else:
-        log_factorial = sum(np.log(np.arange(1, k, 1)))
-        log_distro = k * np.log(lmbda) - log_factorial
+        log_factorial = sum(np.log(np.arange(1, k + 1, 1)))
+        log_distro = k * np.log(lmbda) - lmbda - log_factorial
         result = np.exp(log_distro)
 
     return result

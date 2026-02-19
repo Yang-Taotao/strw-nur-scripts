@@ -2,6 +2,7 @@
 Scripts for tutorial session 1+2
 """
 
+# %%
 # imports
 import numpy as np
 import math
@@ -9,6 +10,7 @@ import timeit
 from matplotlib.image import imread
 
 
+# %%
 # question 1
 # q1 - func
 def sinc_x_lib(x):
@@ -35,10 +37,12 @@ def compare_errors(x: int = 7, n_range: int = 10):
     return result
 
 
+# %%
 # q1 - func call
 q1_result = compare_errors()
 print(q1_result)
 
+# %%
 # question 2
 # q2 - const assignment
 G = 6.67 * 10 ** (-11)
@@ -47,6 +51,7 @@ C_INV = 1 / C
 C_INV2 = C_INV**2
 
 
+# %%
 # q2 - func
 def bh_gen(mean: int = 1000000, stdev: int = 100000, size: int = 10000) -> np.ndarray:
     """create `size` number of bh from gaussian distribution"""
@@ -75,9 +80,11 @@ def rs_compare(mean: int = 1000000, stdev: int = 100000, size: int = 10000):
     return None
 
 
+# %%
 # q2 - func call
 rs_compare()
 
+# %%
 # question 3
 # q3 - func
 # def img_interpolation():
