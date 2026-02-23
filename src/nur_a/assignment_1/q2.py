@@ -27,7 +27,7 @@ def load_data():
     y (np.ndarray): Array of y data points.
     """
     data = np.genfromtxt(
-        os.path.join(sys.path[0], "./data/vandermonde.txt"),
+        "./data/vandermonde.txt",
         comments="#",
         dtype=np.float64,
     )
@@ -135,9 +135,23 @@ def forward_substitution_unit_lower(LU: np.ndarray, b: np.ndarray) -> np.ndarray
     y : np.ndarray
         Solution vector.
     """
-    # TODO:
-    # write your forward substitution for unit lower triangular matrix
-    return np.zeros_like(b)
+    # forward sub
+    # lecture 3 p11
+    # make results ary
+    y = np.zeros(len(b), dtype=np.float64)
+
+    # y_0 = b_0 / alpha_00 -> alpha_ij is L_ij
+    y[0] = b[0] / L[0, 0]
+
+    # y_i = (1 / alpha_ii) * (b_i - sum_{j=0}^{i-1}(y_j * alpha_ij))
+    # sum_{j=0}^{i-1} y_j -> sum(y_0, y_1, ..., y_(j=i)) -> sum(y[:1])
+    # sum_{j=0}^{i-1} alpha_ij -> sum(alpha_i0, alpha_i1, ..., alpha_ii) -> alpha_i(j=1) = sum(LU[i, :i])
+    # sum(y[:i] * LU[i, :i])
+    # now with L with row_i >= col_j
+    for i in range(1, len(b)):
+        y[i] = (1 / LU[i, i]) * (b[i] - sum(y[:i] * LU[i, :i]))
+
+    return y
 
 
 def backward_substitution_upper(LU: np.ndarray, y: np.ndarray) -> np.ndarray:
@@ -157,9 +171,23 @@ def backward_substitution_upper(LU: np.ndarray, y: np.ndarray) -> np.ndarray:
     c : np.ndarray
         Solution vector.
     """
-    # TODO:
-    # write your backward substitution for upper triangular matrix
-    return np.zeros_like(y)
+    # backward sub
+    # lecture 3 p11 -> U*x = y -> use c notations here
+    # make results ary
+    c = np.zeros(y, dtype=np.float64)
+
+    # c_(n-1) = y_(n-1) / beta_((n-1)(n-1)) -> beta_ij is U_ij
+    # at n=i -> last element known
+    c[-1] = y[-1] / U[-1, -1]
+
+    # c_i = (1 / beta_ii) * (y_i - sum_{j=i+1}^{n-1} beta_ij * c_j))
+    # sum_{j=i+1}^{n-1} c_j = sum(c_(i+1), ..., c_(n-1, n=i)) = sum(c[i:])
+    # sum_{j=i+1}^{n-1} beta_ij = sum(beta_(i(i+1)), beta_(i(i+2)), ..., beta_(i(n-1), n=i)) = sum(beta[i, i:])
+    # loop from [-2] idx -> backwards
+    for i in range(n - 2, -1, -1):
+        c[i] = (1 / LU[i, i]) * (y[i] - sum(c[i:] * LU[i, i:]))
+
+    return c
 
 
 def vandermonde_solve_coefficients(x: np.ndarray, y: np.ndarray) -> np.ndarray:
@@ -303,7 +331,7 @@ def plot_part_a(
     axs[1].set_xlabel("$x$")
     axs[1].plot(x_data, np.abs(y_data - y_at_data), linewidth=3)
 
-    plt.savefig(os.path.join(plots_dir, "vandermonde_sol_2a.pdf"))
+    plt.savefig(os.path.join(plots_dir, "a1q2_vandermonde_sol_2a.pdf"))
     plt.close()
 
 
@@ -352,7 +380,7 @@ def plot_part_b(
     axs[1].set_xlabel("$x$")
     axs[1].plot(x_data, np.abs(y_data - y_at_data), linestyle="dashed", linewidth=3)
 
-    plt.savefig(os.path.join(plots_dir, "vandermonde_sol_2b.pdf"))
+    plt.savefig(os.path.join(plots_dir, "a1q2_vandermonde_sol_2b.pdf"))
     plt.close()
 
 
@@ -426,7 +454,7 @@ def plot_part_c(
     axs[1].set_ylabel(r"$|y - y_i|$")
     axs[1].set_xlabel("$x$")
 
-    plt.savefig(os.path.join(plots_dir, "vandermonde_sol_2c.pdf"))
+    plt.savefig(os.path.join(plots_dir, "a1q2_vandermonde_sol_2c.pdf"))
     plt.close()
 
 
@@ -465,7 +493,7 @@ def main():
     )
 
     # write all timing
-    with open("Execution_times.txt", "w", encoding="utf-8") as f:
+    with open("./output/a1q2_execution_times.txt", "w", encoding="utf-8") as f:
         f.write(f"\\item Execution time for part (a): {t_a:.5f} seconds\n")
         f.write(f"\\item Execution time for part (b): {t_b:.5f} seconds\n")
         f.write(f"\\item Execution time for part (c): {t_c:.5f} seconds\n")
@@ -474,7 +502,7 @@ def main():
     plot_part_a(x_data, y_data, c_a)
 
     formatted_c = [f"{coef:.3e}" for coef in c_a]
-    with open("./output/coefficients_output.txt", "w", encoding="utf-8") as f:
+    with open("./output/a1q2_coefficients_output.txt", "w", encoding="utf-8") as f:
         for i, coef in enumerate(formatted_c):
             f.write(f"c$_{i+1}$ = {coef}, ")
 
@@ -484,7 +512,7 @@ def main():
         x_data,
         y_data,
         iterations=11,
-        coeffs_output_path="./output/coefficients_per_iteration.txt",
+        coeffs_output_path="./output/a1q2_coefficients_per_iteration.txt",
     )
     plot_part_c(x_data, y_data, coeffs_history, iterations_num=[0, 1, 10])
 

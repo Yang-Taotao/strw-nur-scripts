@@ -58,7 +58,7 @@ def main() -> None:
         (np.float32(100.0), np.int32(5)),
         (np.float32(101.0), np.int32(200)),
     ]
-    with open("./output/poisson_output.txt", "w") as file:
+    with open("./output/a1q1_poisson_output.txt", "w") as file:
         for i, (lmbda, k) in enumerate(values):
             P = Poisson(k, lmbda)
             if i < len(values) - 1:
