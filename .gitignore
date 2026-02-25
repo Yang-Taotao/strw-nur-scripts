@@ -219,3 +219,7 @@ __marimo__/
 data/
 plots/
 output/
+
+# pdflatex optional
+%OUTDIR%/
+*synctex.gz

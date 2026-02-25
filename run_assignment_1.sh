@@ -38,11 +38,11 @@ echo "INFO: run $(black) formatter on code base ...."
 python3 -m black .
 
 echo "================================================================================="
-echo "INFO: initializing new ./data directory...."
+echo "INFO: initializing new ./data   directory.."
 mkdir -p ./data
 rm -rf ./data/*
 
-echo "INFO: initializing new ./plots directory..."
+echo "INFO: initializing new ./plots  directory.."
 mkdir -p ./plots
 rm -rf ./plots/*
 
@@ -55,13 +55,13 @@ echo "INFO: data downloading to ./data/vandermonde.txt"
 wget -q -O ./data/vandermonde.txt "https://home.strw.leidenuniv.nl/~daalen/Handin_files/Vandermonde.txt"
 
 echo "================================================================================="
-echo "INFO: running py script to solve assignment1-q1..."
+echo "INFO: running scripts to solve assignment1-q1..."
 python3 ./src/nur_a/assignment_1/q1.py
 
 # Copy the code to a text file which will be shown in the PDF
 cat ./src/nur_a/assignment_1/q1.py >./output/a1q1_poisson_code.txt
 
-echo "INFO: running py script to solve assignment1-q2..."
+echo "INFO: running scripts to solve assignment1-q2..."
 python3 ./src/nur_a/assignment_1/q2.py
 
 # Copy the code to a text file which will be shown in the PDF
@@ -69,12 +69,13 @@ cat ./src/nur_a/assignment_1/q2.py >./output/a1q2_vandermonde_all_code.txt
 
 echo "================================================================================="
 echo "INFO: compiling tex via pdflatex..."
-pdflatex -interaction=batchmode ./tex/nur_a_handin_1.tex
+pdflatex -interaction=batchmode "$(pwd)/tex/nur_a_handin_1.tex"
 # Run a second time to fix links/references
-pdflatex -interaction=batchmode ./tex/nur_a_handin_1.tex &>/dev/null 
+pdflatex -interaction=batchmode "$(pwd)/tex/nur_a_handin_1.tex" &>/dev/null 
 
 echo "INFO: purging temp tex comp file..."
 rm -rf ./*.aux ./*.log ./*.out
+rm -rf ./tex/%OUTDIR%
 
 echo "================================================================================="
 echo "INFO: run_assignment_1.sh completed!"

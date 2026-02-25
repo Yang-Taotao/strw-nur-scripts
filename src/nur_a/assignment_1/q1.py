@@ -44,6 +44,7 @@ def Poisson(k: np.int32, lmbda: np.float32) -> np.float32:
         log_factorial = sum(np.log(np.arange(1, k + 1, 1)))
         log_distro = k * np.log(lmbda) - lmbda - log_factorial
         result = np.exp(log_distro)
+        result = np.float32(result)
 
     return result
 

@@ -1,3 +1,4 @@
+% ==================================================================================== %
 \documentclass{article}
 \usepackage[a4paper]{geometry}
 \usepackage[english]{babel}
@@ -9,12 +10,12 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{listings}
 \usepackage{xcolor}
-
+% ==================================================================================== %
 \definecolor{codegreen}{rgb}{0,0.6,0}
 \definecolor{codegray}{rgb}{0.5,0.5,0.5}
 \definecolor{codepurple}{rgb}{0.58,0,0.82}
 \definecolor{backcolour}{rgb}{0.95,0.95,0.92}
-
+% ==================================================================================== %
 \lstdefinestyle{mystyle}{
   backgroundcolor=\color{backcolour},
   commentstyle=\color{codegreen},
@@ -31,84 +32,147 @@
   tabsize=2
 }
 \lstset{style=mystyle}
-
-\newcommand{\CodeDir}{output}
-\newcommand{\PlotDir}{plots}
-
-\title{NURa Hand-in 1}
+% ==================================================================================== %
+\title{NUR A - Assignment 1}
 \author{Taotao Yang (s4866835)}
-\date{Feb 18, 2026}
-
+\date{Dated: \today}
+% ==================================================================================== %
 \begin{document}
-\maketitle
+% ==================================================================================== %
+  \maketitle
 
-\textit{Write a short description of your solution in each section. Explain your choices. Draw the conclusions from your results.}
+  % \textit{
+  %   Write a short description of your solution in each section. 
+  %   Explain your choices. Draw the conclusions from your results.
+  % }
 
-\textit{You can refer to selected lines of code where you think it is necessary. However, you must provide the full code below each question/task.}
+  % \textit{
+  %   You can refer to selected lines of code where you think it is necessary. 
+  %   However, you must provide the full code below each question/task.
+  % }
 
+  % \textit{
+  %   Don't forget to describe your figures 
+  %   and mention what conclusions you draw from them!
+  % }
+% ==================================================================================== %
+  \section{Poisson Distribution}
 
-\textit{Don't forget to describe your figures and mention what conclusions you draw from them!}
+    We start with the general expression for Poisson distribution:
+    \begin{equation}
+      P_{\lambda}(k) = \frac{\lambda^{k} e^{-\lambda}}{k!}
+    \end{equation}
 
-\section{Poisson Distribution}
+    To prevent overflow/underflow in general, we circumvent factorial calculation via
+    mapping to log space. We therefore rewrite Poisson distribution as:
+    \begin{equation}
+      \begin{aligned}
+        \ln{\left(P_{\lambda}(k)\right)} 
+        &= \ln{\left(\frac{\lambda^{k} e^{-\lambda}}{k!}\right)} \\
+        &= k\ln{\left(\lambda\right)} - \lambda - \ln{k!} \\
+        &= k\ln{\left(\lambda\right)} - \lambda - \sum_{i=1}^{k+1}\ln\left(i\right)
+      \end{aligned}
+    \end{equation}
 
-% Add the full code below.
-The full code used for this question:
-\lstinputlisting[language=Python]{\CodeDir/Poisson_code.txt}
+    Therefore, the actual distribution is recovered via:
+    \begin{equation}
+      P_{\lambda}(k) = \exp{\left(\ln{\left(P_{\lambda}(k)\right)}\right)}
+    \end{equation}
 
-% Show your results.
-The results of $P_\lambda(k)$ for selected values of $k$ and $\lambda$ are shown in Table~\ref{tab:poisson}.
+    To ensure input parameter $\lambda$ and $k$ follows the correct \texttt{dtype},
+    we add error handling to function via simple if-else statements. 
+    We enforce correct \texttt{dtype} via local \texttt{dtype} conversion in function.
+    Additionally, for normalized Poisson distribution, we set special case where $k=0$. 
+    That is, Poisson distribution simplify to:
+    \begin{equation}
+      P_{\lambda}(k) = \frac{\lambda^{k} e^{-\lambda}}{k!} 
+      = \frac{\lambda^{0} e^{-\lambda}}{0!} = e^{-\lambda} ~;~ k = 0
+    \end{equation}
 
-\begin{table}[H]
-\centering
-\caption{Poisson probability distribution for selected $k$ and $\lambda$.}
-\label{tab:poisson}
-\begin{tabular}{|c|c|c|}
-\hline
-$\lambda$ & $k$ & $P_\lambda(k)$ \\ 
-\hline
-\input{Poisson_output.txt}
-\end{tabular}
-\end{table}
+    These steps further simplifies the calculations. That is, we can recover the actual
+    value of Possion distribution from the log space results via a simple exponential.
+    This is on top of converting a factorial into a summation of terms.
+    
+    % Add the full code below.
+    The full code used for this question:
+    \lstinputlisting[language=Python]{../../output/a1q1_poisson_code.txt}
 
-\section{Vandermonde Matrix and Interpolation}
+    % Show your results.
+    The results of $P_{\lambda}(k)$ for selected values of $k$ and $\lambda$ 
+    are shown in Table~\ref{tab:poisson}.
 
-\subsection{(2a) LU decomposition}
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.80\textwidth]{\PlotDir/vandermonde_sol_2a.pdf}
-  \caption{Polynomial fit evaluated using LU decomposition. Top: data points and interpolated curve. Bottom: absolute error at the data points on a log scale.}
-  \label{fig:vandermonde_2a}
-\end{figure}
+    \begin{table}[H]
+      \centering
+      \caption{Poisson probability distribution for selected $k$ and $\lambda$.}
+      \label{tab:poisson}
+      \begin{tabular}{|c|c|c|}
+        \hline
+        $\lambda$ & $k$ & $P_{\lambda}(k)$ \\ 
+        \hline
+        \input{../../output/a1q1_poisson_output.txt}
+      \end{tabular}
+    \end{table}
+% ==================================================================================== %
+  \section{Vandermonde Matrix and Interpolation}
 
-\subsection{(2b) Neville's algorithm}
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.80\textwidth]{\PlotDir/vandermonde_sol_2b.pdf}
-  \caption{Interpolation using Neville's algorithm. Top: data points and interpolated curve. Bottom: absolute error at the data points on a log scale.}
-  \label{fig:vandermonde_2b}
-\end{figure}
+    \subsection{(2a) LU decomposition}
+      \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.80\textwidth]{../../plots/a1q2_vandermonde_sol_2a.pdf}
+        \caption{
+          Polynomial fit evaluated using LU decomposition. 
+          Top: data points and interpolated curve. 
+          Bottom: absolute error at the data points on a log scale.
+        }
+        \label{fig:vandermonde_2a}
+      \end{figure}
 
-\subsection{(2c) Improving the LU decomposition}
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.80\textwidth]{\PlotDir/vandermonde_sol_2c.pdf}
-  \caption{LU-based solution with iterative refinement (showing iterations 0, 1 and 10). Top: interpolated curves. Bottom: absolute error at the data points on a log scale.}
-  \label{fig:vandermonde_2c}
-\end{figure}
+    \subsection{(2b) Neville's algorithm}
+      \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.80\textwidth]{../../plots/a1q2_vandermonde_sol_2b.pdf}
+        \caption{
+          Interpolation using Neville's algorithm. 
+          Top: data points and interpolated curve. 
+          Bottom: absolute error at the data points on a log scale.
+        }
+        \label{fig:vandermonde_2b}
+      \end{figure}
 
-\subsection{(2d) Timing}
+    \subsection{(2c) Improving the LU decomposition}
+      \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.80\textwidth]{../../plots/a1q2_vandermonde_sol_2c.pdf}
+        \caption{
+          LU-based solution with iterative refinement (showing iterations 0, 1 and 10). 
+          Top: interpolated curves. 
+          Bottom: absolute error at the data points on a log scale.
+        }
+        \label{fig:vandermonde_2c}
+      \end{figure}
 
-Timing results (average per run):
-\begin{itemize}
-  \input{Execution_times.txt}
-\end{itemize}
+    \subsection{(2d) Timing}
 
-\subsection{Code for Question 2}
-The following code was used for parts (2a)--(2d):
-\lstinputlisting[language=Python]{\CodeDir/Vandermonde_all_code.txt}
+      Timing results (average per run):
+      \begin{itemize}
+        \input{../../output/a1q2_execution_times.txt}
+      \end{itemize}
 
-\subsection{Conclusions}
-\textit{Write a short summary here: which method is most accurate, where errors increase, and how iterations affect accuracy.}
+    \subsection{Code for Question 2}
+      The following code was used for parts (2a)--(2d):
+      \lstinputlisting[language=Python]{../../output/a1q2_vandermonde_all_code.txt}
 
+    \subsection{Conclusions}
+      \textit{
+        Write a short summary here: 
+        which method is most accurate, 
+        where errors increase, 
+        and how iterations affect accuracy.
+      }
+% ==================================================================================== %
+  \section*{Acknowledgement}
+      This article is rendered off of source files at 
+      \href{https://github.com/Yang-Taotao/strw-nur-scripts}{strw-nur-scripts}.
+% ==================================================================================== %
 \end{document}
-
+% ==================================================================================== %
