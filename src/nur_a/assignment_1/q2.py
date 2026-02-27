@@ -159,7 +159,7 @@ def forward_substitution_unit_lower(LU: np.ndarray, b: np.ndarray) -> np.ndarray
     for i in range(len(y)):
         the_sum = np.float64(0.0)
         for j in range(i):
-            the_sum += LU[i, j] * y[i]
+            the_sum += LU[i, j] * y[j]
         y[i] = b[i] - the_sum
 
     return y
@@ -227,9 +227,18 @@ def vandermonde_solve_coefficients(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     c : np.ndarray
         Polynomial coefficients.
     """
-    # TODO:
-    # solve V*c = y using your LU decomposition and forward/backward substitution
-    return np.zeros_like(x)  # Replace with your solution
+    # get vandermonde mat
+    v_mat = construct_vandermonde_matrix(x)
+    # get LU from v mat
+    LU = LU_decomposition(v_mat)
+    # we want c
+    # first solve forward sub -> Ly=b -> returns y
+    # y ary in arg is actually b
+    y_ary = forward_substitution_unit_lower(LU, y)
+    # then solve backward sub -> Uc=y_ary -> returns c
+    c = backward_substitution_upper(LU, y_ary)
+
+    return c
 
 
 def evaluate_polynomial(c: np.ndarray, x_eval: np.ndarray) -> np.ndarray:
@@ -248,28 +257,77 @@ def evaluate_polynomial(c: np.ndarray, x_eval: np.ndarray) -> np.ndarray:
     y_eval : np.ndarray
         Polynomial values.
     """
-    # TODO:
-    # evaluate the polynomial at x_eval using the coefficients c from vandermonde_solve_coefficients
-    return np.zeros_like(x_eval)  # Replace with your results
+    # we want y_eval = sum_j (c[j] * x_eval**j)
+    # y_eval[i] = sum_j (c[j] * x_eval[i]**j)
+    # x_eval.shape = y_eval.shape
+    y_eval = np.zeros(x_eval.shape, dtype=np.float64)
+
+    # we need to loop j for c.shape times at each i -> len(c)
+    # at i = 0, say we set len(c) = 3
+    # y[0] = c[0] * 1 + c[1] * x[0] + c[2] * x[0]**2
+    # y[1] = c[0] * 1 + c[1] * x[1] + c[2] * x[1]**2
+    #
+    # y[i] = c[0] * 1 + c[1] * 1 * x[j] + c[2] * 1 * x[j] * x[j]
+    # the prod behind each c can be computed by
+    # prod *= prod, with init at 1.0
+    for i in range(len(x_eval)):
+        y_val = np.float64(0.0)
+        x_val = np.float64(1.0)
+        for j in range(len(c)):
+            y_val += c[j] * x_val
+            x_val *= x_eval[i]
+        y_eval[i] = y_val
+
+    return y_eval
 
 
-def neville(x_data: np.ndarray, y_data: np.ndarray, x_interp: float) -> float:
+def neville(x: np.ndarray, y: np.ndarray, k: float) -> float:
     """
-    Function that applies Nevilles algorithm to calculate the function value at x_interp.
+    Function that applies Nevilles algorithm to calculate the function value at k.
 
     Parameters
     ------------
-    x_data (np.ndarray): Array of x data points.
-    y_data (np.ndarray): Array of y data points.
-    x_interp (float): The x value at which to interpolate.
+    x (np.ndarray): Array of x data points.
+    y (np.ndarray): Array of y data points.
+    k (float): The x value at which to interpolate.
 
     Returns
     ------------
-    float: The interpolated y value at x_interp.
+    float: The interpolated y value at k.
     """
-    # TODO:
-    # write your Neville's algorithm
-    return 0
+    # lecture 4 p12 -> consider romberg
+    # x_data.shape should match y_data.shape -> same len()
+    # need polynomial table p -> upper trig form
+    n = len(x)
+    p = np.zeros((n, n), dtype=np.float64)
+
+    # consult gen form when 0<=i<=j<=n
+    # p[i,i] = y[i]
+    # p[i,j] eval at x = ((x-x[i])p[i+1,j]-(x-x[j])p[i,j-1])/(x[j]-x[i])
+    # for code implementation, loop over diag is complicated
+    #
+    # p00 p01 p02     p00 p01 p02
+    #     p11 p12  => p10 p11
+    #         p22     p20
+    #
+    # loop over col at each iter
+    # at each col, loop over rows
+    # p00 = y0, p10 = y1, p20 = y2
+    # p01 = y01, p11 = y12
+    # p02 = y012
+    #
+    # at niter0, col0 is y
+    p[:, 0] = y
+    # loop over col to get the p[:j] needed for next col
+    for j in range(1, n):
+        for i in range(n - j):
+            top = (k - x[i]) * p[i + 1, j - 1] - (k - x[i + j]) * p[i, j - 1]
+            bot = x[i + j] - x[i]
+            p[i, j] = top / bot
+
+    result = np.float64(p[0, -1])
+
+    return result
 
 
 # you can merge the function below with LU_decomposition to make it more efficient
@@ -277,7 +335,7 @@ def run_LU_iterations(
     x: np.ndarray,
     y: np.ndarray,
     iterations: int = 11,
-    coeffs_output_path: str = "Coefficients_per_iteration.txt",
+    coeffs_output_path: str = "./output/a1q2_coefficients_output.txt",
 ):
     """
     Iteratively improves computation of coefficients c.
@@ -298,10 +356,79 @@ def run_LU_iterations(
     coeffs_history :
         List of coefficient vectors.
     """
-    # TODO:
-    # Implement an iterative improvement for computing the coefficients c,
-    # and save the coefficients at each iteration to coeffs_output_path.
-    return [np.zeros_like(x) for _ in range(iterations)]  # Replace with your solution
+    # get initial conditions
+    n = len(x)
+    # get base v_mat
+    v_mat = construct_vandermonde_matrix(x)
+    # create LU decomposition pivot vec p
+    LU = v_mat.copy()
+    p = np.arange(n)
+    # init history
+    coeffs_history = []
+
+    # find max pivot and record row idx
+    for k in range(n - 1):
+
+        # get initial max val
+        pivot_max = abs(LU[k, k])
+        pivot_max_row = k
+
+        # check over other pivots
+        for i in range(k + 1, n):
+            pivot_val = abs(LU[i, k])
+            if pivot_val > pivot_max:
+                pivot_max = pivot_val
+                pivot_max_row = i
+
+        # row swap if max pivot not on 0,0
+        if pivot_max_row != k:
+            LU[[k, pivot_max_row]] = LU[[pivot_max_row, k]]
+            p[[k, pivot_max_row]] = p[[pivot_max_row, k]]
+
+        # do LU decomp
+        pivot = LU[k, k]
+        for i in range(k + 1, n):
+            LU[i, k] /= pivot
+            LU[i, k + 1 :] -= LU[i, k] * LU[k, k + 1 :]
+
+    # y swap according to pivot vec p
+    y_new = y[p]
+
+    # find initial c
+    y0 = forward_substitution_unit_lower(LU, y_new)
+    c = backward_substitution_upper(LU, y0)
+    coeffs_history.append(c.copy())
+
+    # write to file
+    # from niter1 onwards
+    # get residual res = y - y_estimated = y - v_mat * c
+    # delta_c = vandermonde solve(x, dy), dy ~ res
+    # c += delta_c -> add to history
+    # next niter
+    with open(coeffs_output_path, "w", encoding="utf-8") as f:
+        f.write(f"niter=0\n")
+        for i, coef in enumerate(c):
+            f.write(f"c_{i}={coef:.3e}\n")
+
+        for it in range(1, iterations):
+            y_est = np.zeros(n, dtype=np.float64)
+            for i in range(n):
+                for j in range(n):
+                    y_est[i] += v_mat[i, j] * c[j]
+
+            res = y - y_est
+            res_new = res[p]
+            delta_y = forward_substitution_unit_lower(LU, res_new)
+            delta_c = backward_substitution_upper(LU, delta_y)
+
+            c += delta_c
+            coeffs_history.append(c.copy())
+
+            f.write(f"niter={it}\n")
+            for i, coef in enumerate(c):
+                f.write(f"c_{i}={coef:.3e}\n")
+
+    return coeffs_history
 
 
 def plot_part_a(
