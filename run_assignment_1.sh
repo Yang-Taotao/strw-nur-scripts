@@ -7,9 +7,9 @@ chmod +x ./run_assignment_1.sh
 # and/or you edited run.sh on Windows, run this command:
 dos2unix ./run_assignment_1.sh &>/dev/null
 
-# Make sure you do NOT run in a virtual environment (e.g. conda, uv), 
+# Make sure you do NOT run in a virtual environment (e.g. conda, uv),
 # or your results may be different than when we run your code
-# On the STRW computers, you may need to run "module purge" 
+# On the STRW computers, you may need to run "module purge"
 # if you load any modules at startup
 echo "================================================================================="
 pythonversion="$(python3 --version | cut -d' ' -f2)"
@@ -31,7 +31,7 @@ if ! python3 -m black --version &>/dev/null; then
 	python3 -m pip install black
 fi
 
-# Format all python files 
+# Format all python files
 # (note that this assumes your python files are all in the same directory as run.sh)
 echo "================================================================================="
 echo "INFO: run $(black) formatter on code base ...."
@@ -69,12 +69,13 @@ cat ./src/nur_a/assignment_1/q2.py >./output/a1q2_vandermonde_all_code.txt
 
 echo "================================================================================="
 echo "INFO: compiling tex via pdflatex..."
-pdflatex -interaction=batchmode "$(pwd)/tex/nur_a_handin_1.tex"
+pdflatex -interaction=batchmode --output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_1.tex"
 # Run a second time to fix links/references
-pdflatex -interaction=batchmode "$(pwd)/tex/nur_a_handin_1.tex" &>/dev/null 
+pdflatex -interaction=batchmode --output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_1.tex" &>/dev/null
 
 echo "INFO: purging temp tex comp file..."
 rm -rf ./*.aux ./*.log ./*.out
+rm -rf ./tex/*.aux ./tex/*.log ./tex/*.out
 rm -rf ./tex/%OUTDIR%
 
 echo "================================================================================="
