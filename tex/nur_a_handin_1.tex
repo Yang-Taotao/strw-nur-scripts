@@ -11,27 +11,34 @@
 \usepackage{listings}
 \usepackage{xcolor}
 % ==================================================================================== %
-\definecolor{codegreen}{rgb}{0,0.6,0}
-\definecolor{codegray}{rgb}{0.5,0.5,0.5}
-\definecolor{codepurple}{rgb}{0.58,0,0.82}
-\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{nord-bg}{HTML}{FFFFFF}
+\definecolor{nord-fg}{HTML}{2E3440} 
+\definecolor{nord-comment}{HTML}{5E81AC}
+\definecolor{nord-keyword}{HTML}{BF616A}
+\definecolor{nord-string}{HTML}{A3BE8C}
+\definecolor{nord-number}{HTML}{B48EAD}
+\definecolor{nord-operator}{HTML}{D08770}
 % ==================================================================================== %
-\lstdefinestyle{mystyle}{
-  backgroundcolor=\color{backcolour},
-  commentstyle=\color{codegreen},
-  keywordstyle=\color{magenta},
-  numberstyle=\tiny\color{codegray},
-  stringstyle=\color{codepurple},
-  basicstyle=\ttfamily\footnotesize,
-  breaklines=true,
-  captionpos=b,
-  keepspaces=true,
-  numbers=left,
-  numbersep=5pt,
-  showstringspaces=false,
-  tabsize=2
+\lstdefinestyle{nord_light}{
+    backgroundcolor=\color{nord-bg},
+    basicstyle=\color{nord-fg}\footnotesize\ttfamily,
+    commentstyle=\color{nord-comment},
+    keywordstyle=\color{nord-keyword}\bfseries,
+    stringstyle=\color{nord-string},
+    numberstyle=\color{nord-number},
+    otherkeywords={self,cls,@classmethod,@property},
+    keywordstyle={[2]\color{nord-operator}},
+    frame=leftline,
+    showstringspaces=false,
+    breaklines=true,
+    tabsize=4,
+    extendedchars=true,
+    numbers=left, 
+    numberstyle=\tiny\color{nord-fg}, 
+    stepnumber=1, 
+    numbersep=10pt,
 }
-\lstset{style=mystyle}
+\lstset{style=nord_light}
 % ==================================================================================== %
 \title{NUR A - Assignment 1}
 \author{Taotao Yang (s4866835)}
@@ -103,15 +110,17 @@ are shown in Table~\ref{tab:poisson}.
 
 \begin{table}[H]
   \centering
-  \caption{Poisson probability distribution for selected $k$ and $\lambda$.}
-  \label{tab:poisson}
-  \begin{tabular}{|c|c|c|}
+  \begin{tabular}{|l|l|l|}
     \hline
     $\lambda$ & $k$ & $P_{\lambda}(k)$ \\
     \hline
-    \input{output/a1q1_poisson_output.txt}
+    \input{output/a1q1_poisson_output.txt} \\
+    \hline
   \end{tabular}
+  \caption{Poisson probability distribution for selected $k$ and $\lambda$.}
+  \label{tab:poisson}
 \end{table}
+
 % ==================================================================================== %
 \section{Vandermonde Matrix and Interpolation}
 

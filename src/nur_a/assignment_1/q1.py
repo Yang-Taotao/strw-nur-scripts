@@ -24,7 +24,7 @@ def Poisson(k: np.int32, lmbda: np.float32) -> np.float32:
     # P <-> ln(P) through np.exp()
 
     # break if k and lmbda doesn't match wanted dtype
-    if k.dtype != "int32" or lmbda.dtype != "float32":
+    if k.dtype != np.int32 or lmbda.dtype != np.float32:
         raise TypeError(
             f"No matching dtype with k.dtype {k.dtype}, lmbda.dtype {lmbda.dtype}"
         )
@@ -39,12 +39,16 @@ def Poisson(k: np.int32, lmbda: np.float32) -> np.float32:
     # break if k is neg
     elif k < np.int32(0):
         raise ValueError(f"Invalid k at negative value, k={k}.")
+
     # log space rewrite P -> ln(P)
-    else:
-        log_factorial = sum(np.log(np.arange(1, k + 1, 1)))
-        log_distro = k * np.log(lmbda) - lmbda - log_factorial
-        result = np.exp(log_distro)
-        result = np.float32(result)
+    # enforce generated k as int32
+    # enforce ln(k) in float32
+    # np.sum uses the dtype of passed in array as default, outputting float32
+    log_factorial = np.sum(
+        np.log(np.arange(1, k + 1, 1, dtype=np.int32), dtype=np.float32)
+    )
+    log_distro = k * np.log(lmbda, dtype=np.float32) - lmbda - log_factorial
+    result = np.exp(log_distro, dtype=np.float32)
 
     return result
 

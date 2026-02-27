@@ -49,21 +49,21 @@ def construct_vandermonde_matrix(x: np.ndarray) -> np.ndarray:
     V : np.ndarray, Vandermonde matrix.
     """
     # init vandermonde mat at shape (len(x), len(x))
+    # use consistent float64 dtype as load_data()
     n = len(x)
     v_mat = np.zeros((n, n), dtype=np.float64)
 
     # assign val at elements with V(i,j) as x_i^j, first col == 1 by def
-    # 1st col == [1, 1, ...] Transpose -> V(0,0)=1.0
-    # 2nd col == [x_0, x_1, ...] Transpose -> V(1,0)=1.0*x_0
-    # 3rd col == [x_0**2, x_1**2, ...] Transpose -> V(2,0)=x_0**x_0
+    # 1st col -> 0 idx == [1, 1, ...] Transpose -> V(0,0)=1.0
+    # 2nd col -> 1 idx == [x_0, x_1, ...] Transpose -> V(1,0)=1.0*x_0
+    # 3rd col -> 2 idx == [x_0**2, x_1**2, ...] Transpose -> V(2,0)=(1.0*x_0)*x_0
     # efficient through col assignment by doing col_(j) = x**(j-1)
     # alternative -> col_(j) = x * col_(j-1)
     # with j=0 col assignment -> reducing n(operations) on each row with
-    for j in range(n):
-        if j == 0:
-            v_mat[:, j] = np.float64(1.0)
-        else:
-            v_mat[:, j] = x * v_mat[:, j - 1]
+    v_mat[:, 0] = np.float64(1.0)
+    # now loop over the rest of the col
+    for j in range(1, n):
+        v_mat[:, j] = x * v_mat[:, j - 1]
 
     return v_mat
 
@@ -98,6 +98,7 @@ def LU_decomposition(A: np.ndarray) -> np.ndarray:
         )
 
     # do gaussian elimination with mat element A(i,j)
+    # 1st row, 1st col item is A(1, 1) in mat, code at 0 idx equivalent to A[0, 0]
     # L -> terms with i > j
     # U -> terms with i <= j
     # LU -> combined L and U into one mat
@@ -116,6 +117,14 @@ def LU_decomposition(A: np.ndarray) -> np.ndarray:
             A[i, k + 1 :] -= A[i, k] * A[k, k + 1 :]
 
     return A
+
+    # general form of A for LU follows
+    # A = mat(A_ij)
+    # if A x = b, with A = LU
+    # LU x = b
+    # we can sub with y = U x -> L y = b
+    # we now have 2 sets of eqs 1) y = U x, 2) L y = b
+    # we can now solve for y and x
 
 
 def forward_substitution_unit_lower(LU: np.ndarray, b: np.ndarray) -> np.ndarray:
@@ -137,19 +146,21 @@ def forward_substitution_unit_lower(LU: np.ndarray, b: np.ndarray) -> np.ndarray
     """
     # forward sub
     # lecture 3 p11
-    # make results ary
+    # L * y = b
+    # y has shape agreement with b
     y = np.zeros(len(b), dtype=np.float64)
 
-    # y_0 = b_0 / alpha_00 -> alpha_ij is L_ij
-    y[0] = b[0] / L[0, 0]
-
-    # y_i = (1 / alpha_ii) * (b_i - sum_{j=0}^{i-1}(y_j * alpha_ij))
-    # sum_{j=0}^{i-1} y_j -> sum(y_0, y_1, ..., y_(j=i)) -> sum(y[:1])
-    # sum_{j=0}^{i-1} alpha_ij -> sum(alpha_i0, alpha_i1, ..., alpha_ii) -> alpha_i(j=1) = sum(LU[i, :i])
-    # sum(y[:i] * LU[i, :i])
-    # now with L with row_i >= col_j
-    for i in range(1, len(b)):
-        y[i] = (1 / LU[i, i]) * (b[i] - sum(y[:i] * LU[i, :i]))
+    # y_i = (1 / L_ii) * (b_i - sum_{j=0}^{i-1}(y_j * L_ij))
+    # because of LU mat instead of L and U mat, we can safely set L_ii = 1
+    #
+    # y[0] = b[0]
+    # y[1] = b[1] - (LU[1,0] * y[0])
+    # y[2] = b[2] - (LU[2,0] * y[0] + LU[2,1] * y[1])
+    for i in range(len(y)):
+        the_sum = np.float64(0.0)
+        for j in range(i):
+            the_sum += LU[i, j] * y[i]
+        y[i] = b[i] - the_sum
 
     return y
 
@@ -173,20 +184,30 @@ def backward_substitution_upper(LU: np.ndarray, y: np.ndarray) -> np.ndarray:
     """
     # backward sub
     # lecture 3 p11 -> U*x = y -> use c notations here
-    # make results ary
-    c = np.zeros(y, dtype=np.float64)
+    # make results ary like in forward sub
+    c = np.zeros(len(y), dtype=np.float64)
 
-    # c_(n-1) = y_(n-1) / beta_((n-1)(n-1)) -> beta_ij is U_ij
-    # at n=i -> last element known
-    c[-1] = y[-1] / U[-1, -1]
-
-    # c_i = (1 / beta_ii) * (y_i - sum_{j=i+1}^{n-1} beta_ij * c_j))
-    # sum_{j=i+1}^{n-1} c_j = sum(c_(i+1), ..., c_(n-1, n=i)) = sum(c[i:])
-    # sum_{j=i+1}^{n-1} beta_ij = sum(beta_(i(i+1)), beta_(i(i+2)), ..., beta_(i(n-1), n=i)) = sum(beta[i, i:])
-    # loop from [-2] idx -> backwards
-    for i in range(n - 2, -1, -1):
-        c[i] = (1 / LU[i, i]) * (y[i] - sum(c[i:] * LU[i, i:]))
-
+    # c_i = (1/U_ii)*(y_i-sum_{j=i+1}^{n-1}(U_ij*c_j))
+    # for j in [i+1, n-1) -> n terms -> idx n-1 = idx -1 -> idx j as [i+1, -1, -1]
+    #
+    # just like in forward sub, we use a LU mat instead of a separate U
+    # U_ij = LU_ij since j >= i
+    #
+    # set n=3
+    # c[0] = (1/LU[0,0])*(y[0]-(LU[0,2]*c[2] + LU[0,1]*c[1]))
+    # c[1] = (1/LU[1,1])*(y[1]-(LU[1,2]*c[2]))
+    # c[2] = (1/LU[2,2])*(y[2])
+    #
+    # loop from last i, i = n-1 = 2 -> loop 2, 1, 0 -> range(n-1, -1, -1)
+    # for j val
+    # when at i = 2 -> empty j loop
+    # when at i = 1 -> loop j at 2
+    # when at i = 0 -> loop j at 1, 2
+    for i in range(len(c) - 1, -1, -1):
+        the_sum = np.float64(0.0)
+        for j in range(i + 1, len(c)):
+            the_sum += LU[i, j] * c[j]
+        c[i] = (1 / LU[i, i]) * (y[i] - the_sum)
     return c
 
 
