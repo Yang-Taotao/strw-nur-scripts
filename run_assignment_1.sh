@@ -22,7 +22,7 @@ if [ "${matplotlibversion}" != "3.9.0" ]; then
 fi
 numpyversion="$(python3 -m pip list | grep "numpy " | tr -s ' ' | cut -d' ' -f2)"
 if [ "${numpyversion}" != "1.26.4" ]; then
-	echo "WARNING: numpy version ${numpyversion} != default vdesk one (v1.26.4)"black
+	echo "WARNING: numpy version ${numpyversion} != default vdesk one (v1.26.4)"
 fi
 
 # Check if black formatter is installed

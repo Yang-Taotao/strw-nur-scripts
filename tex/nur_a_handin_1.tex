@@ -12,7 +12,7 @@
 \usepackage{xcolor}
 % ==================================================================================== %
 \definecolor{nord-bg}{HTML}{FFFFFF}
-\definecolor{nord-fg}{HTML}{2E3440} 
+\definecolor{nord-fg}{HTML}{2E3440}
 \definecolor{nord-comment}{HTML}{5E81AC}
 \definecolor{nord-keyword}{HTML}{BF616A}
 \definecolor{nord-string}{HTML}{A3BE8C}
@@ -20,29 +20,29 @@
 \definecolor{nord-operator}{HTML}{D08770}
 % ==================================================================================== %
 \lstdefinestyle{nord_light}{
-    backgroundcolor=\color{nord-bg},
-    basicstyle=\color{nord-fg}\footnotesize\ttfamily,
-    commentstyle=\color{nord-comment},
-    keywordstyle=\color{nord-keyword}\bfseries,
-    stringstyle=\color{nord-string},
-    numberstyle=\color{nord-number},
-    otherkeywords={self,cls,@classmethod,@property},
-    keywordstyle={[2]\color{nord-operator}},
-    frame=leftline,
-    showstringspaces=false,
-    breaklines=true,
-    tabsize=4,
-    extendedchars=true,
-    numbers=left, 
-    numberstyle=\tiny\color{nord-fg}, 
-    stepnumber=1, 
-    numbersep=10pt,
+  backgroundcolor=\color{nord-bg},
+  basicstyle=\color{nord-fg}\footnotesize\ttfamily,
+  commentstyle=\color{nord-comment},
+  keywordstyle=\color{nord-keyword}\bfseries,
+  stringstyle=\color{nord-string},
+  numberstyle=\color{nord-number},
+  otherkeywords={self,cls,@classmethod,@property},
+  keywordstyle={[2]\color{nord-operator}},
+  frame=leftline,
+  showstringspaces=false,
+  breaklines=true,
+  tabsize=4,
+  extendedchars=true,
+  numbers=left,
+  numberstyle=\tiny\color{nord-fg},
+  stepnumber=1,
+  numbersep=10pt,
 }
 \lstset{style=nord_light}
 % ==================================================================================== %
 \title{NUR A - Assignment 1}
 \author{Taotao Yang (s4866835)}
-\date{Dated: \today}
+\date{Dated: February 28, 2026} %\today
 % ==================================================================================== %
 \begin{document}
 % ==================================================================================== %
@@ -65,123 +65,429 @@
 % ==================================================================================== %
 \section{Poisson Distribution}
 
-We start with the general expression for Poisson distribution:
-\begin{equation}
-  P_{\lambda}(k) = \frac{\lambda^{k} e^{-\lambda}}{k!}
-\end{equation}
+  We start with the general expression for Poisson distribution for some positive mean
+  $\lambda$ and integer $k$:
+  \begin{equation}
+    P_{\lambda}(k) = \frac{\lambda^{k} e^{-\lambda}}{k!}
+  \end{equation}
 
-To prevent overflow/underflow in general, we circumvent factorial calculation via
-mapping to log space. We therefore rewrite Poisson distribution as:
-\begin{equation}
-  \begin{aligned}
-    \ln{\left(P_{\lambda}(k)\right)}
-    &= \ln{\left(\frac{\lambda^{k} e^{-\lambda}}{k!}\right)} \\
-    &= k\ln{\left(\lambda\right)} - \lambda - \ln{k!} \\
-    &= k\ln{\left(\lambda\right)} - \lambda - \sum_{i=1}^{k+1}\ln\left(i\right)
-  \end{aligned}
-\end{equation}
+  To prevent overflow/underflow in general, we circumvent factorial calculations via
+  mapping to log space. We therefore rewrite Poisson distribution as:
+  \begin{equation}
+    \begin{aligned}
+      \ln{\left(P_{\lambda}(k)\right)}
+      &= \ln{\left(\frac{\lambda^{k} e^{-\lambda}}{k!}\right)} \\
+      &= k\ln{\lambda} - \lambda - \ln{k!} \\
+      &= k\ln{\lambda} - \lambda - \sum_{i=1}^{k+1}\ln{i}
+    \end{aligned}
+  \end{equation}
 
-Therefore, the actual distribution is recovered via:
-\begin{equation}
-  P_{\lambda}(k) = \exp{\left(\ln{\left(P_{\lambda}(k)\right)}\right)}
-\end{equation}
+  Therefore, the actual distribution is recovered via:
+  \begin{equation}
+    P_{\lambda}(k) = \exp{\left(\ln{\left(P_{\lambda}(k)\right)}\right)}
+  \end{equation}
 
-To ensure input parameter $\lambda$ and $k$ follows the correct \texttt{dtype},
-we add error handling to function via simple if-else statements.
-We enforce correct \texttt{dtype} via local \texttt{dtype} conversion in function.
-Additionally, for normalized Poisson distribution, we set special case where $k=0$.
-That is, Poisson distribution simplify to:
-\begin{equation}
-  P_{\lambda}(k) = \frac{\lambda^{k} e^{-\lambda}}{k!}
-  = \frac{\lambda^{0} e^{-\lambda}}{0!} = e^{-\lambda} ~;~ k = 0
-\end{equation}
+  To ensure input parameter $\lambda$ and $k$ follows the correct \texttt{dtype},
+  we add error handling to function via simple if-else statements. This step is enforced
+  alongside some value checker for $\lambda$ and $k$, where $\lambda <=0$ or $k<=$
+  would both result in function raising errors, as the Poisson distribution given would
+  become ill-defined or invalid for these $\lambda$ and $k$ values. We enforce correct
+  \texttt{dtype} via local \texttt{dtype} conversion in function. Additionally, for
+  normalized Poisson distribution, we set special case where $k=0$. That is, Poisson
+  distribution simplifies to:
+  \begin{equation}
+    P_{\lambda}(k) = \frac{\lambda^{k} e^{-\lambda}}{k!}
+    = \frac{\lambda^{0} e^{-\lambda}}{0!} = e^{-\lambda} ~,~ k = 0
+  \end{equation}
 
-These steps further simplifies the calculations. That is, we can recover the actual
-value of Possion distribution from the log space results via a simple exponential.
-This is on top of converting a factorial into a summation of terms.
+  These steps further simplify the calculations. That is, we can recover the actual 
+  value of Possion distribution from the log space results via a simple exponential. 
+  This is on top of converting a factorial into a summation of terms.
 
-% Add the full code below.
-The full code used for this question:
-\lstinputlisting[language=Python]{output/a1q1_poisson_code.txt}
+  % Add the full code below.
+  The full code used for this question:
+  \lstinputlisting[language=Python]{output/a1q1_poisson_code.txt}
 
-% Show your results.
-The results of $P_{\lambda}(k)$ for selected values of $k$ and $\lambda$
-are shown in Table~\ref{tab:poisson}.
+  % Show your results.
+  The results of $P_{\lambda}(k)$ for selected values of $k$ and $\lambda$
+  are shown in Table~\ref{tab:poisson}.
 
-\begin{table}[H]
-  \centering
-  \begin{tabular}{|l|l|l|}
-    \hline
-    $\lambda$ & $k$ & $P_{\lambda}(k)$ \\
-    \hline
-    \input{output/a1q1_poisson_output.txt} \\
-    \hline
-  \end{tabular}
-  \caption{Poisson probability distribution for selected $k$ and $\lambda$.}
-  \label{tab:poisson}
-\end{table}
+  \begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|l|}
+      \hline
+      $\lambda$ & $k$ & $P_{\lambda}(k)$ \\
+      \hline
+      \input{output/a1q1_poisson_output.txt} \\
+      \hline
+    \end{tabular}
+    \caption{Poisson probability distribution for selected $k$ and $\lambda$.}
+    \label{tab:poisson}
+  \end{table}
 
+  \pagebreak
 % ==================================================================================== %
 \section{Vandermonde Matrix and Interpolation}
 
-\subsection{(2a) LU decomposition}
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.80\textwidth]{plots/a1q2_vandermonde_sol_2a.pdf}
-  \caption{
-    Polynomial fit evaluated using LU decomposition.
-    Top: data points and interpolated curve.
-    Bottom: absolute error at the data points on a log scale.
-  }
-  \label{fig:vandermonde_2a}
-\end{figure}
+  The $N \times N$ Vandermonde matrix $\mathbf{V}_{i,j}$ has general form for some row
+  $i$ and column $j$:
+  \begin{equation}
+    \mathbf{V}_{i,j} = x_{i}^{j}
+  \end{equation}
 
-\subsection{(2b) Neville's algorithm}
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.80\textwidth]{plots/a1q2_vandermonde_sol_2b.pdf}
-  \caption{
-    Interpolation using Neville's algorithm.
-    Top: data points and interpolated curve.
-    Bottom: absolute error at the data points on a log scale.
-  }
-  \label{fig:vandermonde_2b}
-\end{figure}
+  For some data array $x$, we can obtain the associated elements of $\mathbf{V}_{i,j}$.
+  Therefore, we can find some coefficient array $c$ by solving $\mathbf{V}c=y$, where 
+  $c$ forms some unique polynomials that passes through all $y$ points. We can compute 
+  $y$ from:
+  \begin{equation}
+    y_{i} = \sum_{j=0}^{N-1}c_{j}x_{i}^{j} ~,~ i \in \left\{0,1,\dots,N-1\right\}
+  \end{equation}
 
-\subsection{(2c) Improving the LU decomposition}
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.80\textwidth]{plots/a1q2_vandermonde_sol_2c.pdf}
-  \caption{
-    LU-based solution with iterative refinement (showing iterations 0, 1 and 10).
-    Top: interpolated curves.
-    Bottom: absolute error at the data points on a log scale.
-  }
-  \label{fig:vandermonde_2c}
-\end{figure}
+% ==================================================================================== %
 
-\subsection{(2d) Timing}
+  \subsection{(2a) LU decomposition}
 
-Timing results (average per run):
-\begin{itemize}
-    \input{output/a1q2_execution_times.txt}
-\end{itemize}
+    Let us first consider some matrix $\mathbf{A}_{i,j}$. For LU decomposition, we 
+    require $\mathbf{A}_{i,j}$ to be square and non-singular. By passing the matrix 
+    through shape checks, we can proceed to performing LU decomposition in situ. That 
+    is, instead of aving two separate matricies for storing $\mathbf{L}_{i,j}$ and 
+    $\mathbf{U}_{i,j}$, we compute for the combined $\mathbf{LU}_{i,j}$ to replace 
+    source $\mathbf{A}_{i,j}$.
 
-\subsection{Code for Question 2}
-The following code was used for parts (2a)--(2d):
-\lstinputlisting[language=Python]{output/a1q2_vandermonde_all_code.txt}
+    Following Court's algorithm, we create nested loops where we loop over the column 
+    $j$, with row $i$ looped inside the column loops. Observe the following equation for 
+    $\mathbf{LU}_{i,j}$, where we define $\mathbf{L}_{i,j}$ to be unity along its 
+    diagonal:
+    \begin{equation}
+      \mathbf{L}_{i,j} = \frac{\mathbf{A}_{i,j}}{\mathbf{A}_{j,j}} ~,~ i>j
+    \end{equation}
 
-\subsection{Conclusions}
-\textit{
-  Write a short summary here:
-  which method is most accurate,
-  where errors increase,
-  and how iterations affect accuracy.
-}
+    We then perform Gaussian elimination on rows with the computed $\mathbf{L}_{i,j}$
+    terms. On each row of $\mathbf{A}_{i,j}$, where $i \in \left\{1, \dots, i\right\}$,
+    we subtract the values of said row with $\mathbf{L}_{i,j}$ times of the first row.
+    For example:
+    \begin{equation}
+      \mathbf{A}_{i,j}
+      =
+      \begin{bmatrix}
+        1 & 1 & 1 \\
+        2 & 4 & 8 \\
+        3 & 9 & 27 
+      \end{bmatrix}
+      = 
+      \begin{bmatrix}
+        1 & 0 & 0 \\
+        2 & 1 & 0\\
+        3 & 3 & 1 
+      \end{bmatrix}
+      \begin{bmatrix}
+        1 & 1 & 1 \\
+        0 & 2 & 6 \\
+        0 & 0 & 6 
+      \end{bmatrix}
+      =
+      \mathbf{L}_{i,j}\mathbf{U}_{i,j}
+    \end{equation}
+    
+    Effectively, we decompose a source matrix $\mathbf{A}_{i,j}$ into 
+    $\mathbf{LU}_{i,j}$, where $\mathbf{LU}_{i,j}$ is the combined matrix of 
+    $\mathbf{L}_{i,j}$ and $\mathbf{U}_{i,j}$. Notice that the row reduction happens at
+    each column iterations across all relavant rows. These matricies follow:
+    \begin{equation}
+      \mathbf{A}_{i,j} = \mathbf{L}_{i,j}\mathbf{U}_{i,j}
+    \end{equation}
+
+    For efficient computation, we want to do operations on the source matrix and return
+    a combined LU matrix instead of two distinct matrices.For some source matrix 
+    $\mathbf{A}_{i,j}$, we obtain:
+    \begin{equation}
+      \begin{aligned}
+        \mathbf{A}_{i,j}
+        &=
+        \begin{bmatrix}
+          \mathbf{A}_{0,0}   & \dots  & \mathbf{A}_{0,N-1}  \\
+          \dots              & \ddots & \vdots              \\
+          \mathbf{A}_{N-1,0} & \dots  & \mathbf{A}_{N-1,N-1}
+        \end{bmatrix} \\
+        &= 
+        \begin{bmatrix}
+          \mathbf{L}_{0,0}   &        &                     \\
+          \dots              & \ddots &                     \\
+          \mathbf{L}_{N-1,0} & \dots  & \mathbf{L}_{N-1,N-1}
+        \end{bmatrix}
+        \begin{bmatrix}
+          \mathbf{U}_{0,0}   & \dots  & \mathbf{U}_{0,N-1}  \\
+                            & \ddots & \vdots              \\
+                            &        & \mathbf{U}_{N-1,N-1}
+        \end{bmatrix}
+        =
+        \mathbf{L}_{i,j}\mathbf{U}_{i,j}
+      \end{aligned}
+    \end{equation}
+
+    Recall that $\mathbf{L}_{i,j}$ is defined with its diagonal set to unity, we now
+    overwrite $\mathbf{L}_{i,j}$ with $\mathbf{U}_{i,j}$. This creates a combined matrix
+    for LU decomposition results, with diagonal axis of $\mathbf{L}_{i,j}$ overwritten 
+    with the diagonal entry of $\mathbf{U}_{i,j}$:
+    \begin{equation}
+      \begin{bmatrix}
+        1                  &        &                     \\
+        \dots              & \ddots &                     \\
+        \mathbf{L}_{N-1,0} & \dots  & 1
+      \end{bmatrix}
+      \begin{bmatrix}
+        \mathbf{U}_{0,0}   & \dots  & \mathbf{U}_{0,N-1}  \\
+                            & \ddots & \vdots              \\
+                            &        & \mathbf{U}_{N-1,N-1}
+      \end{bmatrix}
+      \Rightarrow
+      \begin{bmatrix}
+        \mathbf{U}_{0,0}   & \dots  & \mathbf{U}_{0,N-1}  \\
+        \dots              & \ddots & \vdots              \\
+        \mathbf{L}_{N-1,0} & \dots  & \mathbf{U}_{N-1,N-1}
+      \end{bmatrix}
+      = 
+      \mathbf{LU}_{i,j}
+    \end{equation}
+
+    Consider source matrix $\mathbf{A}_{i,j}$, we have general expression for the 
+    linear system with variable vector $\vec{x}$ and value vector $\vector{b}$:
+    \begin{equation}
+      \mathbf{A}_{i,j}\vec{x}=\vec{b} \Rightarrow \mathbf{LU}_{i,j}\vec{x}=\vec{b}
+    \end{equation}
+
+    We can solve for coefficient $c$ using the following subsitution methods. First, we
+    set $\mathbf{U}_{i,j}\vec{x} = \vec{y}$ and solve for $\vec{y}$. Then, we set
+    $\mathbf{L}_{i,j}\vec{y} = \vec{b}$ and solve for $\vec{x}$. Effectively, we use:
+    \begin{equation}
+      \mathbf{LU}_{i,j}\vec{x}=\vec{b}
+      \Rightarrow
+      \begin{cases}
+        & \mathbf{L}_{i,j}\vec{x}=\vec{y} \\ 
+        & \mathbf{U}_{i,j}\vec{y}=\vec{x} 
+      \end{cases}
+    \end{equation}
+
+    Recall how $\mathbf{LU}_{i,j}$ is the combined matrix of $\mathbf{L}_{i,j}$ and 
+    $\mathbf{U}_{i,j}$. We can therefore extract component matrix values via careful 
+    indexing rules: 
+    \begin{equation}
+      \mathbf{L}_{i,j} ~,~ i>j ~~;~~ \mathbf{U}_{i,j} ~,~i \leq j
+    \end{equation}
+
+    We extract the terms for forward and backward substitution via:
+    \begin{equation}
+      \begin{aligned}
+        \vec{y}_{i} 
+        &= 
+        \frac{1}{\mathbf{L}_{i,i}}\left(\vec{b}_{i} 
+        - \sum_{j=0}^{i-1}\vec{y}_{j}\mathbf{L}_{i,j}\right) 
+        \\
+        \vec{x}_{i} 
+        &= 
+        \frac{1}{\mathbf{U}_{i,i}}\left(\vec{y}_{i} 
+        - \sum_{j=i+1}^{n-1}\mathbf{U}_{i,j}\vec{x}_{j}\right)
+      \end{aligned}
+    \end{equation}
+
+    Therefore, we obtain $\vec{x}$ as $c$. For more information, see listed comments in
+    code lisitng sections. In the provided plotting functions, we plot the polynomial 
+    fit from LU decomposition against source data points, with residual terms 
+    represented as absolute error on log scale.
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.80\textwidth]{plots/a1q2_vandermonde_sol_2a.pdf}
+      \caption{
+        Polynomial fit evaluated using LU decomposition.
+        Top: data points and interpolated curve.
+        Bottom: absolute error at the data points on a log scale.
+      }
+      \label{fig:vandermonde_2a}
+    \end{figure}
+
+  \subsection{(2b) Neville's algorithm}
+
+    Moving onward, we implement Neville's algorithm for interpreting $\vec{y}$ from
+    $\vec{x}$. The aim of Neville's algorithm is to interpolate the values of the entire 
+    fucntion from some given $(x,y)$ data points. To achieve this, we generate a table 
+    $\mathbf{p}_{i,j}$ to store the polynomials. Let us again consider a $3\times3$ 
+    matrix for intuition:
+    \begin{equation}
+      \mathbf{p}_{i,j}
+      =
+      \begin{bmatrix}
+        \mathbf{p}_{0,0} & \mathbf{p}_{0,1} & \mathbf{p}_{0,2} \\
+                        & \mathbf{p}_{1,1} & \mathbf{p}_{1,2} \\
+                        &                  & \mathbf{p}_{2,2} 
+      \end{bmatrix}
+    \end{equation}
+
+    Intuitivly, we see that $\mathbf{p}_{i,i}$ terms match with source $(x,y)$ pais. 
+    That is, $\mathbf{p}_{i,i} = y_{i}$. Therefore, we can interpolate for some $x=k$ 
+    as:
+    \begin{equation}
+      \mathbf{p}_{i,j}
+      =
+      \frac{\left(k-x_{i}\right)p_{i+1,j}-\left(k-x_{j}\right)p_{i,j-1}}{x_{j}-x_{i}}
+      ~,~ k \in \left(\text{min}(x),\text{max}(x)\right)
+    \end{equation}
+
+    However, we quickly notice that enforcing loops over rows is not ideal, as we would 
+    be computing for $\mathbf{p}_{0,2}$ prior to its dependencies $\mathbf{p}_{0,1}$ and 
+    $\mathbf{p}_{1,2}$are resolved. That is, we simply shift the matrix to the following
+    form such that:
+    \begin{equation}
+      \mathbf{p}_{i,j}
+      =
+      \begin{bmatrix}
+        \mathbf{p}_{0,0} & \mathbf{p}_{0,1} & \mathbf{p}_{0,2} \\
+        \mathbf{p}_{1,0} & \mathbf{p}_{1,1} &                  \\
+        \mathbf{p}_{2,0} &                  &  
+      \end{bmatrix}
+    \end{equation}
+
+    We can now interpolate $\mathbf{p}_{0,1}$ from $\mathbf{p}_{0,0}$ and 
+    $\mathbf{p}_{1,0}$. Similarly, we obtain $\mathbf{p}_{1,1}$ from  $\mathbf{p}_{1,0}$ 
+    and $\mathbf{p}_{2,0}$. The indexing is now shifted to:
+    \begin{equation}
+      \mathbf{p}_{i,j}
+      =
+      \frac{(k-x_{i})\mathbf{p}_{i+1,j-1}-(k-x_{i+j})\mathbf{p}_{i,j-1}}{x_{i+j}-x_{i}}
+    \end{equation}
+
+    Naturally, we index out $\mathbf{p}_{0,-1}$ term of the resulting polynomial table 
+    to obtain the evaluated $y$ value at some $x=k$. And by performing this opearation 
+    repeatedly, we can construct some evaluate $\vec{y}$ from $\vec{k}$, which would be
+    used for residual calculations.  
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.80\textwidth]{plots/a1q2_vandermonde_sol_2b.pdf}
+      \caption{
+        Interpolation using Neville's algorithm.
+        Top: data points and interpolated curve.
+        Bottom: absolute error at the data points on a log scale.
+      }
+      \label{fig:vandermonde_2b}
+    \end{figure}
+
+  \subsection{(2c) Improving the LU decomposition}
+
+    We now come to the part where we realize that LU decomposition methods for solving 
+    $c$ can be problematic when we followed Court's algorithm. Namely, for source matrix 
+    $\mathbf{A}_{i,j}$, when we perform pivoting opeartions, we might run into cases 
+    where the values on each row are in extreme ratio. Since we enforce 
+    \texttt{dtype=numpy.float64} on matrix entries, the error from numerical opeataions 
+    increases as the number of operations increases. Therefore, by introducing partial 
+    pivoting with pivot value storage in a dedicated vector $\vec{p}$. 
+
+    This step is important for organizing the source matrix before pivoting is 
+    performed. Consider the following matrix with arbitrarily massive value differences:
+    \begin{equation}
+      \mathbf{A}_{i,j}
+      =
+      \begin{bmatrix}
+        10^{2}   & 10^{9}  & 10^{21} \\
+        10^{-20} & 10^{21} & 10^{-1} \\
+        10^{3}   & 10^{1}  & 10^{-2} \\
+      \end{bmatrix}
+    \end{equation}
+
+    With the previous implementatin of Court's algorithm, we get pivot term $10^{-22}$
+    on row $i=1$, This lead to iterative Gaussian elimination steps on the rows, 
+    negelecting potential numerical stability issue with repeated divition. 
+    Alternativly, by adding implicit pivoting, we observe that a max value of 
+    $(i,j)=(1,1)$ is found in $\mathbf{A}_{i,j}$. We can therefore first compute the pivot
+    for this $(i,j)=(1,1)$ pair for Gaussian elimination. The core idea is to prevent 
+    division by extremely small numbers.
+
+    In our code, we loop over indecies to find the max value of some $\mathbf{A}_{i,j}$. 
+    After which, we rearange $\mathbf{A}_{i,j}$ through row swapping if applicable for 
+    Gaussian elimination preparation. Thus, we obtain $\mathbf{LU}_{i,j}$ with implicit
+    pivoting included. And as usual, we now have the necessary ingredients to solve for 
+    $c$ through forward and backward substitution. Recall the expression for 
+    $\mathbf{V}_{i,j}c=\vec{y}$, we can compute the residual $r$, which leads to the 
+    correction term $\delta_{y}$ and $\delta_{c}$ for $\vec{y}$ and $c$, since we aim to
+    minimize $r$.
+    \begin{equation}
+      \begin{aligned}
+        r &= \abs{\vec{y}_{\text{computed}}-\vec{y}_{\text{data}}} \\
+        \delta_{y} &\Rightarrow \mathbf{LU}_{i,j}\vec{r} \\
+        \delta_{c} &\Rightarrow \mathbf{LU}_{i,j}\vec{\delta_{y}} \\
+      \end{aligned}
+    \end{equation}
+
+    Thus, we obtain the new coefficient $c$ as $c+\delta_{c}$. We then iterate over to 
+    minimize the residual $r$. In the figures, $r$ live within a smaller range at higher
+    iterations. Howeverm it is observed that these errors do converge when a large 
+    number of data points $x$ are given.
+
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.80\textwidth]{plots/a1q2_vandermonde_sol_2c.pdf}
+      \caption{
+        LU-based solution with iterative refinement (showing iterations 0, 1 and 10).
+        Top: interpolated curves.
+        Bottom: absolute error at the data points on a log scale.
+      }
+      \label{fig:vandermonde_2c}
+    \end{figure}
+
+  \subsection{(2d) Timing}
+
+    The function shipped with the template indicated the time calculation from average 
+    time taken for ten function calls. We see that basic LU decomposition without 
+    implicit pivoting uses the least amount of time when generating results while 
+    Neville's algorithm implmentation takes significantly longer to complete the same 
+    coefficient calculations. LU decomposition with implicit pivoting seems to sit in
+    between the two abovementioned methods in terms of time taken. 
+    
+    Timing results (average per run):
+    \begin{itemize}
+        \input{output/a1q2_execution_times.txt}
+    \end{itemize}
+
+    \pagebreak
+
+  \subsection{Code for Question 2}
+    The following code was used for parts (2a)--(2d):
+    \lstinputlisting[language=Python]{output/a1q2_vandermonde_all_code.txt}
+
+  \subsection{Conclusions}
+    That is, we observe basic LU decomposition through Court's algorithm to be the
+    fasted but least accurate. This is because we are gambling on the source matrix to
+    be somewhat compatible for this direct approach without introducing too much
+    numerical instabilities. And Neville's algorithm is the slowest by almost ~300 
+    orders of magnitude in terms of time cosumed while producing the smallest error. 
+    This is because Neville's algorithm interpolate the Vandermonde matrix for results
+    in an almost bruteforce way. Even with a permutation table present, the number of 
+    operations needed to fill the permutation table is huge. Comparing the order of 
+    operations. Basic LU decomposition is the heaviest when LU matrix operations are
+    called, as Gaussian elimination requires opeations $~ O(n^3)$. While Neville's 
+    algorithm, though relying on permutation table, which echoes to order of $~ O(n^2)$,
+    is linearly dependent on the number of points supplied. 
+    
+    Iterative LU decomposition with implicit pivoting gives reasonably small error terms 
+    while being significantly faster than Neville's algorithm. Foundamentally, the 
+    iterative approach is very similar to the basic LU decomposition solving through
+    Court's algorithm, with key difference in using implicit pivoting for maintaining 
+    numerical stability. By direct comparison, the iterative process takes on more 
+    operations, but after the first iteration where initial $c$ is known, the iterative
+    process only need to solve for $\delta_y$ and $\delta_c$, instead of constructing 
+    a fresh source data matrix at each iteration.
+    
+    Overall, we must consider how computers handle numbers. For this assigmnet, most 
+    arrays and numbers are computed with \texttt{numpy.float64} precision. And with each 
+    operations, rounding errors compound. Assume high iterations for solving a system,
+    higher number of opearations reflects a higher error in numerical roundoff. But in 
+    terms of balancing speed and precision, an iterative approach is ideal.
+
 % ==================================================================================== %
 \section*{Acknowledgement}
-This article is rendered off of source files at
-\href{https://github.com/Yang-Taotao/strw-nur-scripts}{strw-nur-scripts}.
+  This article is rendered off of source files at
+  \href{https://github.com/Yang-Taotao/strw-nur-scripts}
+  {git@github.com:Yang-Taotao/strw-nur-scripts}.
 % ==================================================================================== %
 \end{document}
 % ==================================================================================== %

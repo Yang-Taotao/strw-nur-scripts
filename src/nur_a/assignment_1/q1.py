@@ -36,9 +36,13 @@ def Poisson(k: np.int32, lmbda: np.float32) -> np.float32:
     # special case if k = 0 -> k! = 1
     if k == np.int32(0):
         result = np.exp(-lmbda)
-    # break if k is neg
+    # break if k is neg -> undefined factorial in source fn
     elif k < np.int32(0):
-        raise ValueError(f"Invalid k at negative value, k={k}.")
+        raise ValueError(f"Invalid k when k < 0, k={k}.")
+
+    # break if lmbda is non negative
+    if lmbda <= np.int32(0):
+        raise ValueError(f"Invalid lmbda when lmbda <= 0, k={k}.")
 
     # log space rewrite P -> ln(P)
     # enforce generated k as int32
