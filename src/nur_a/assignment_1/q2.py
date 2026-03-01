@@ -46,7 +46,7 @@ def construct_vandermonde_matrix(x: np.ndarray) -> np.ndarray:
 
     Returns
     -------
-    V : np.ndarray, Vandermonde matrix.
+    v_mat : np.ndarray, Vandermonde matrix.
     """
     # init vandermonde mat at shape (len(x), len(x))
     # use consistent float64 dtype as load_data()
@@ -82,20 +82,23 @@ def LU_decomposition(A: np.ndarray) -> np.ndarray:
 
     Returns
     -------
-    A : np.ndarray
+    LU : np.ndarray
         Decomposed array.
     """
     n_row, n_col = A.shape
     # error if not square
     if n_row != n_col:
         raise ValueError(
-            f"Abort with non-square matrix. Current shape ({A.shape[0]}, {A.shape[1]})."
+            f"Abort with non-square matrix. Current shape ({n_row}, {n_col})."
         )
-    # error if singular
+    # error if only 1 element
     if n_row == n_col == 1:
         raise ValueError(
-            f"Abort with a singular matrix. Current shape ({A.shape[0]}, {A.shape[1]})."
+            f"Abort with a single element matrix. Current shape ({n_row}, {n_col})."
         )
+
+    # make local copy of A as LU
+    LU = A.copy()
 
     # do gaussian elimination with mat element A(i,j)
     # 1st row, 1st col item is A(1, 1) in mat, code at 0 idx equivalent to A[0, 0]
@@ -105,18 +108,18 @@ def LU_decomposition(A: np.ndarray) -> np.ndarray:
     # LU through crout's -> pivot -> loop over col k -> then row i
     # last diag term does not need pivot
     for k in range(n_col - 1):  # k in [0, n_col-1)
-        pivot = A[k, k]
-        # break if zero pivot
+        pivot = LU[k, k]
+        # break if zero pivot -> div by 0 error
         if pivot == np.float64(0.0):
             raise ValueError(f"Found zero pivot, pivot({k}, {k}) = {pivot}.")
         # do operation on whole row
         for i in range(k + 1, n_col):  # i in [1, n_col)
             # L(i,k) = A(i,k)/A(k,k), i>k
-            A[i, k] /= pivot
+            LU[i, k] /= pivot
             # update row -< reduce
-            A[i, k + 1 :] -= A[i, k] * A[k, k + 1 :]
+            LU[i, k + 1 :] -= LU[i, k] * LU[k, k + 1 :]
 
-    return A
+    return LU
 
     # general form of A for LU follows
     # A = mat(A_ij)

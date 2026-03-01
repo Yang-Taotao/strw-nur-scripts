@@ -29,20 +29,17 @@ def Poisson(k: np.int32, lmbda: np.float32) -> np.float32:
             f"No matching dtype with k.dtype {k.dtype}, lmbda.dtype {lmbda.dtype}"
         )
 
-    # local dtype enforcement
-    k = np.int32(k)
-    lmbda = np.float32(lmbda)
-
-    # special case if k = 0 -> k! = 1
-    if k == np.int32(0):
-        result = np.exp(-lmbda)
-    # break if k is neg -> undefined factorial in source fn
-    elif k < np.int32(0):
-        raise ValueError(f"Invalid k when k < 0, k={k}.")
-
     # break if lmbda is non negative
     if lmbda <= np.int32(0):
         raise ValueError(f"Invalid lmbda when lmbda <= 0, k={k}.")
+
+    # break if k is neg -> undefined factorial in source fn
+    if k < np.int32(0):
+        raise ValueError(f"Invalid k when k < 0, k={k}.")
+
+    # special case if k = 0 -> k! = 1
+    if k == np.int32(0):
+        result = np.exp(-lmbda, dtype=np.float32)
 
     # log space rewrite P -> ln(P)
     # enforce generated k as int32
