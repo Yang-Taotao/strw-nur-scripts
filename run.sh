@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # If you get a permission denied error for run.sh itself, run this line in the terminal:
-chmod +x ./run_assignment_1.sh
+chmod +x ./run.sh
 
 # If you get errors about weird (return) characters,
 # and/or you edited run.sh on Windows, run this command:
-dos2unix ./run_assignment_1.sh &>/dev/null
+dos2unix ./run.sh &>/dev/null
 
 # Make sure you do NOT run in a virtual environment (e.g. conda, uv),
 # or your results may be different than when we run your code
@@ -79,7 +79,7 @@ rm -rf ./tex/*.aux ./tex/*.log ./tex/*.out
 rm -rf ./tex/%OUTDIR%
 
 echo "================================================================================="
-echo "INFO: run_assignment_1.sh completed!"
+echo "INFO: run.sh completed!"
 echo "WARNING: don't forget to hand in a *clean* version of this directory"
 echo "         (remove downloaded data, the plots and output directories)."
 echo "================================================================================="

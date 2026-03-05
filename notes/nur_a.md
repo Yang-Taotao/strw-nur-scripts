@@ -271,8 +271,8 @@ Notes for NUR_A
     - linear along grid axis, but not linear in the whole operation
   - alternatives to solving for system of equations
     - transform to u-v plane from x-y plane -> scaled axis
-      - u = (x-x*i) / (x*(i+1)-x_i)
-      - v = (y-y*j) / (y*(j+1)-y_j)
+      - u = (x-x_i) / (x\*(i+1)-x_i)
+      - v = (y-y_j) / (y\*(j+1)-y_j)
     - interpolate along individual axis at a time
       - interpolate along x axis for some y -> x_i for the interpolated i
       - interpolate along y axis for some x -> y_j on some interpolated x_i
@@ -285,3 +285,118 @@ Notes for NUR_A
   - interpolate between the triangles
 
 ### extrapolation
+
+## Lecture 6
+
+- sorting algo
+  - bubble
+  - quick
+  - gnome
+  - bogosort
+  - shellsort
+  - etc
+
+- what is a good algo for sorting
+  - no round-off or other errors
+  - fast
+  - mem efficient
+  - stability
+
+- selection sort
+  - scan the unsorted list for next smallest element
+  - not stable
+  - still O(N^2) but faster than bubble
+
+- insertion sort
+  - use numpy.insert() for inserting val to someplace
+  - inefficient if not using the np methods
+  - O(N^2) for comparison, O(N) for swaps -> O(N^2+N)
+  - fastest if at small N << ~100
+
+- shellsort
+  - sorting sub arrays with some gap sequence
+  - sort with some gaps like h=9 -> h=3 -> h=1
+  - for gap h=3 -> sort the entries on every 3 elements -> i=0,3,6,...; i=1,4,7,...
+  - sort sub arrays at large gap h -> sort with insertion sort on these sub arrays
+  - decrease h to something smaller -> sort again
+  - then finally at h=1 so that the entire array is sorted
+  - insertion uses O(N^2) -> shellsort breaks the problem to smaller N -> sum(N^2) smaller than N_total^2
+
+- quicksort
+  - same idea, break operations in smaller chunks so its faster
+  - pivot -> sort wrt the pivot
+  - example
+    - start, if even, same thing as middle element idx is len()//2
+    - take median of first, last, and middle element -> swap these 3 to put them in the right order
+    - set pivot as the middle element -> pivot = a_3 = 4
+    - idx i go from idx 0 to a_i >= pivot, and idx j go from idx -1 to a_j <= pivot
+    - pivot doesn't need to shift positions in this method
+  - order O(Nlog(N)) -> N elements -> log(N) chunks for recursive sort on sub arrays
+  - worst case -> still O(N^2) if pivot is at the ends of the array
+  - why use other algo if quicksort is so fast
+    - consistency -> need a better worst case scenario
+    - stability -> quicksort is not stable
+    - preference -> aesthetics, etc
+
+- alternatives
+  - mergesort
+    - consistent and stable
+    - always O(Nlog(N))
+    - about 2-3 times slower than quicksort
+    - always compare only the first remaining element of each subarray
+    - can just do it in place without copying
+  - heapsort
+    - build heap, a bin tree with decreasing children
+    - always O(Nlog(N))
+    - not stable
+  - note
+    - big O order usually with log(N) as log_2(N)
+
+- what about sorting a series of arrays
+  - example: galaxy with attributes like L, M, type, color, etc
+  - say we sort by luminosity L
+    - we can sort by an indexing array
+    - when sorting by L -> indexing array entries get swapped and sorted
+    - then apply the indexing array to other arrays -> profit
+  - indexing, rank table, quantiles, shuffling
+
+- root finding
+  - find all x where f(x) = 0
+  - also an intersection problem -> find where f(x) = g(x) -> def h(x) = f(x)-g(x) = 0
+  - important
+    - find a good first guess and an initial bracket -> root should be in that bracket
+    - what does the fn look like? does it actually cross y=0 axis? how many roots?
+    - round-off error
+  - how to bracket - linear methods
+    - assume root in between a and b
+    - check if f(a) and f(b) are different signs
+      - f(a)f(b) < 0
+    - bisection
+      - assume we start with a bracket where there is only one root
+      - divide interval a,b in 2 parts iteratively -> some midpoint c = (a+b)/2
+      - is root in a,c or c,b? -> iterative
+      - at n iterations, current bracket width / original bracket width = 1/2^n
+    - target accuracy
+      - set both absolute and fractional target error, and a max num of iterations
+    - secant method
+      - linearly estimating where the root should be from the 2 last guesses
+      - risky due to lack of bracketing -> fast but might diverge
+    - false position method
+      - similar to secant method
+      - but with a bracket
+      - see slides
+      - doesn't converge as quickly but does not diverge
+  - polynomials
+    - quadratic
+      - brent's methods
+        - safeguards from bracketing
+        - do x(y) instead of y(x)
+        - more stable, no sqrt needed, and only 1 intersection with x-axis
+        - see slides
+      - newton-raphson method
+        - same stuff but with real derivatives
+
+
+## NOTE
+
+must use `run.sh` file for assignment -> refactor for simple folder structure.
