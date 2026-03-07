@@ -37,6 +37,7 @@ echo "==========================================================================
 echo "INFO: run $(black) formatter on code base ...."
 python3 -m black .
 
+# Directory init/clean
 echo "================================================================================="
 echo "INFO: initializing new ./data   directory.."
 mkdir -p ./data
@@ -50,29 +51,58 @@ echo "INFO: initializing new ./output directory.."
 mkdir -p ./output
 rm -rf ./output/*
 
+# NUR_A Assignment 1
+# ==================================================================================== #
+# echo "================================================================================="
+# echo "INFO: data downloading to ./data/vandermonde.txt"
+# wget -q -O ./data/vandermonde.txt "https://home.strw.leidenuniv.nl/~daalen/Handin_files/Vandermonde.txt"
+
+# echo "================================================================================="
+# echo "INFO: running scripts to solve assignment1-q1..."
+# python3 ./src/nur_a/assignment_1/q1.py
+
+# # Copy the code to a text file which will be shown in the PDF
+# cat ./src/nur_a/assignment_1/q1.py >./output/a1q1_poisson_code.txt
+
+# echo "INFO: running scripts to solve assignment1-q2..."
+# python3 ./src/nur_a/assignment_1/q2.py
+
+# # Copy the code to a text file which will be shown in the PDF
+# cat ./src/nur_a/assignment_1/q2.py >./output/a1q2_vandermonde_all_code.txt
+
+# echo "================================================================================="
+# echo "INFO: compiling tex via pdflatex..."
+# pdflatex -interaction=batchmode --output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_1.tex"
+# # Run a second time to fix links/references
+# pdflatex -interaction=batchmode --output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_1.tex" &>/dev/null
+# ==================================================================================== #
+
+# NUR_A Assignment 2
+# ==================================================================================== #
 echo "================================================================================="
-echo "INFO: data downloading to ./data/vandermonde.txt"
-wget -q -O ./data/vandermonde.txt "https://home.strw.leidenuniv.nl/~daalen/Handin_files/Vandermonde.txt"
+echo "INFO: running scripts to solve assignment2-q1..."
+python3 ./src/nur_a/assignment_2/q1.py # Q1_SatelliteGalaxy.py
 
-echo "================================================================================="
-echo "INFO: running scripts to solve assignment1-q1..."
-python3 ./src/nur_a/assignment_1/q1.py
+cat ./src/nur_a/assignment_2/q1.py > ./output/a2q1_poisson_code.txt
+cat ./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_integrator_code.txt
+cat ./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_sampling_code.txt
+cat ./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_selection_code.txt
+cat ./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_derivative_code.txt
 
-# Copy the code to a text file which will be shown in the PDF
-cat ./src/nur_a/assignment_1/q1.py >./output/a1q1_poisson_code.txt
+echo "INFO: running scripts to solve assignment2-q2..."
+python3 ./src/nur_a/assignment_2/q2.py # Q2_Heating_and_cooling.py
 
-echo "INFO: running scripts to solve assignment1-q2..."
-python3 ./src/nur_a/assignment_1/q2.py
-
-# Copy the code to a text file which will be shown in the PDF
-cat ./src/nur_a/assignment_1/q2.py >./output/a1q2_vandermonde_all_code.txt
+cat ./src/nur_a/assignment_2/q2.py > ./output/a2q2_heatingcooling_code.txt
 
 echo "================================================================================="
 echo "INFO: compiling tex via pdflatex..."
-pdflatex -interaction=batchmode --output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_1.tex"
+pdflatex -interaction=batchmode --output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_2.tex"
 # Run a second time to fix links/references
-pdflatex -interaction=batchmode --output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_1.tex" &>/dev/null
+pdflatex -interaction=batchmode --output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_2.tex" &>/dev/null
+# ==================================================================================== #
 
+
+# LaTeX compile post fix
 echo "INFO: purging temp tex comp file..."
 rm -rf ./*.aux ./*.log ./*.out
 rm -rf ./tex/*.aux ./tex/*.log ./tex/*.out

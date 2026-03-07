@@ -1,40 +1,42 @@
 # strw-nur-scripts
 
-This is the documentation for [**_Numerical Recipes in Astrophysics A_**](https://studiegids.universiteitleiden.nl/courses/130599/numerical-recipes-in-astrophysics-a) and [**_Numerical Recipes in Astrophysics B_**](https://studiegids.universiteitleiden.nl/courses/130600/numerical-recipes-in-astrophysics-b) at [**Leiden Observatory**](https://local.strw.leidenuniv.nl/).
+[![Linux](https://img.shields.io/badge/platform-Linux-green?logo=linux&logoColor=white)](https://www.kernel.org/) [![Python](https://img.shields.io/badge/python=3.9.25-blue?logo=python&logoColor=yellow)](https://www.python.org/downloads/release/python-3925/) [![License](https://img.shields.io/github/license/Yang-Taotao/strw-nur-scripts?color=yellow)](LICENSE)
+
+This is the documentation for **Numerical Recipes in Astrophysics** course at [Leiden Observatory](https://local.strw.leidenuniv.nl/):
+
+[![NUR-A](https://img.shields.io/badge/NUR%20A-2026-blue)](https://studiegids.universiteitleiden.nl/courses/130599/numerical-recipes-in-astrophysics-a) [![NUR-B](https://img.shields.io/badge/NUR%20B-2026-blue)](https://studiegids.universiteitleiden.nl/courses/130600/numerical-recipes-in-astrophysics-b)
 
 **Dated:** 2026-February-10
 
-## notes
+## Comment
 
 - This is a collection of lecture notes and scripts used during the courses
 - Containing scripts used for tutorial problems and assignments
 
-## additional
+## Additional
 
 - scripts are written and tested under `conda` environment as specified through `environment.yml`
-- scripts can also be ran natively with base `python3` through shell script `run_*.sh`
+- scripts can also be run natively with base `python3` through shell script `run.sh` -> ***preferred***
 
-## usage
+## Usage
 
-Preferred OS
-
-![Linux](https://img.shields.io/badge/-Linux-4c566a?logo=linux?link=https://github.com/user/repo)
-
-Star by cloning the repository to your device:
+Start by cloning the repository:
 
 ```sh
 git clone https://github.com/Yang-Taotao/strw-nur-scripts.git
 cd strw-nur-scripts/
 ```
 
-Example usage for generating results for `nur_a_handin_1`:
+Example usage for running the `.py` scripts for assingmnets and compiling the associated `.tex` files:
 
 ```sh
-chmod +x ./run_assignment_1.sh
-./run_assignment_1.sh
+chmod +x ./run.sh
+./run.sh
 ```
 
-See `file structure` below for details.
+Comments
+- Relevant section of `run.sh` are kept in its comments for executing associated scripts for specific assignments. 
+- See `file structure` below for details on where the files are located.
 
 ## file structure
 
@@ -43,14 +45,15 @@ See `file structure` below for details.
 ├── src                     # source code
 │   └── nur_a
 │       ├── assignment_1
+│       ├── assignment_2
 │       └── tutorial
 ├── data                    # data: text based
 ├── media                   # data: images for tutorials and assignments
 ├── notes                   # lecture notes
-├── output                  # output: text based
+├── output                  # output: text based, code, calculations
 ├── plots                   # output: plots
 ├── tex                     # latex files and rendered pdf
-├── run_assignment_1.sh     
+├── run.sh     
 ├── environment.yml
 ├── README.md
 └── LICENSE
