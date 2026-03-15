@@ -12,17 +12,17 @@ dos2unix ./run.sh &>/dev/null
 # On the STRW computers, you may need to run "module purge"
 # if you load any modules at startup
 echo "================================================================================="
-pythonversion="$(python3 --version | cut -d' ' -f2)"
-if [ "${pythonversion}" != "3.9.25" ]; then
-	echo "WARNING: python version ${pythonversion} != default vdesk one (v3.9.25)"
+py_ver="$(python3 --version | cut -d' ' -f2)"
+if [ "${py_ver}" != "3.9.25" ]; then
+	echo "WARNING: python version ${py_ver} != default vdesk one (v3.9.25)"
 fi
-matplotlibversion="$(python3 -m pip list | grep "matplotlib " | tr -s ' ' | cut -d' ' -f2)"
-if [ "${matplotlibversion}" != "3.9.0" ]; then
-	echo "WARNING: matplotlib version ${matplotlibversion} != default vdesk one (v3.9.0)"
+plt_ver="$(python3 -m pip list | grep "matplotlib " | tr -s ' ' | cut -d' ' -f2)"
+if [ "${plt_ver}" != "3.9.0" ]; then
+	echo "WARNING: matplotlib version ${plt_ver} != default vdesk one (v3.9.0)"
 fi
-numpyversion="$(python3 -m pip list | grep "numpy " | tr -s ' ' | cut -d' ' -f2)"
-if [ "${numpyversion}" != "1.26.4" ]; then
-	echo "WARNING: numpy version ${numpyversion} != default vdesk one (v1.26.4)"
+np_ver="$(python3 -m pip list | grep "numpy " | tr -s ' ' | cut -d' ' -f2)"
+if [ "${np_ver}" != "1.26.4" ]; then
+	echo "WARNING: numpy version ${np_ver} != default vdesk one (v1.26.4)"
 fi
 
 # Check if black formatter is installed
@@ -55,7 +55,8 @@ rm -rf ./output/*
 # ==================================================================================== #
 # echo "================================================================================="
 # echo "INFO: data downloading to ./data/vandermonde.txt"
-# wget -q -O ./data/vandermonde.txt "https://home.strw.leidenuniv.nl/~daalen/Handin_files/Vandermonde.txt"
+# wget -q -O ./data/vandermonde.txt \
+# 	https://home.strw.leidenuniv.nl/~daalen/Handin_files/Vandermonde.txt"
 
 # echo "================================================================================="
 # echo "INFO: running scripts to solve assignment1-q1..."
@@ -72,9 +73,11 @@ rm -rf ./output/*
 
 # echo "================================================================================="
 # echo "INFO: compiling tex via pdflatex..."
-# pdflatex -interaction=batchmode --output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_1.tex"
+# pdflatex -interaction=batchmode \
+# 	--output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_1.tex"
 # # Run a second time to fix links/references
-# pdflatex -interaction=batchmode --output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_1.tex" &>/dev/null
+# pdflatex -interaction=batchmode \
+# 	--output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_1.tex" &>/dev/null
 # ==================================================================================== #
 
 # NUR_A Assignment 2
@@ -83,11 +86,16 @@ echo "==========================================================================
 echo "INFO: running scripts to solve assignment2-q1..."
 python3 ./src/nur_a/assignment_2/q1.py # Q1_SatelliteGalaxy.py
 
-cat ./src/nur_a/assignment_2/q1.py > ./output/a2q1_poisson_code.txt
-cat ./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_integrator_code.txt
-cat ./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_sampling_code.txt
-cat ./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_selection_code.txt
-cat ./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_derivative_code.txt
+sed -n '/NDEN - START/,/NDEN - END/p' \
+	./src/nur_a/assignment_2/q1.py > ./output/a2q1_poisson_code.txt
+sed -n '/INTG - START/,/INTG - END/p' \
+	./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_integrator_code.txt
+sed -n '/SAMP - START/,/SAMP - END/p' \
+	./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_sampling_code.txt
+sed -n '/SORT - START/,/SORT - END/p' \
+	./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_selection_code.txt
+sed -n '/DIFF - START/,/DIFF - END/p' \
+	./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_derivative_code.txt
 
 echo "INFO: running scripts to solve assignment2-q2..."
 python3 ./src/nur_a/assignment_2/q2.py # Q2_Heating_and_cooling.py
@@ -96,9 +104,11 @@ cat ./src/nur_a/assignment_2/q2.py > ./output/a2q2_heatingcooling_code.txt
 
 echo "================================================================================="
 echo "INFO: compiling tex via pdflatex..."
-pdflatex -interaction=batchmode --output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_2.tex"
+pdflatex -interaction=batchmode \
+	--output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_2.tex"
 # Run a second time to fix links/references
-pdflatex -interaction=batchmode --output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_2.tex" &>/dev/null
+pdflatex -interaction=batchmode \
+	--output-directory="$(pwd)/tex" "$(pwd)/tex/nur_a_handin_2.tex" &>/dev/null
 # ==================================================================================== #
 
 
