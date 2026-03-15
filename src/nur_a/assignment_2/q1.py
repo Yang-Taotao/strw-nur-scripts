@@ -259,7 +259,7 @@ def sampler(
     # init samples
     samples = []
     # set step size for horizon tracing
-    delta = 0.01 * (max_val - min_val)
+    delta = 0.0001 * (max_val - min_val)
 
     # generate y ~ U(0, dist(x)) = U(0, 1)*dist(x)
     for _ in range(Nsamples):
@@ -297,12 +297,49 @@ def sampler(
 # SORT - START
 
 
+def heap_ops(ary: np.ndarray, n: int, i: int) -> None:
+    """Recursive heap sorting ops, build heap with size n"""
+    # [2, 1, 5, 3, 7, 6, 8]
+    # heap 0 1 2 3 4 5 6
+    # elem 2 1 5 3 7 6 8
+
+    # max heap at   =>  swap
+    # 8                 5
+    # 3   7             3   7
+    # 2 1 6 5           2 1 6 /8
+
+    # recursive
+    # to max heap   =>  swap
+    # 7                 5
+    # 3   6             3   6
+    # 2 1 5 /8          2 1 /7 /8
+
+    # get max idx
+    max_heap = i
+    # get idx bounds - heap child of idx i
+    l = 2 * i + 1
+    r = 2 * i + 2
+
+    # find max idx
+    if n > l and ary[l] > ary[max_heap]:
+        max_heap = l
+    if n > r and ary[r] > ary[max_heap]:
+        max_heap = r
+
+    # swap
+    if max_heap != i:
+        ary[max_heap], ary[i] = ary[i], ary[max_heap]
+
+        # recursive ops
+        heap_ops(ary, n, max_heap)
+
+
 def sort_array(
     arr: np.ndarray,
     inplace: bool = False,
 ) -> np.ndarray:
     """
-    Sort a 1D array using a sorting algorithm of your choice
+    Sort a 1D array using a sorting algorithm of your choice - heap sort
 
     Parameters
     ----------
@@ -314,23 +351,38 @@ def sort_array(
 
     Returns
     -------
-    sorted_arr : ndarray
+    ary : ndarray
         Sorted array (same shape as arr)
 
     """
-    if inplace:
-        sorted_arr = arr
+    # check inplace flag
+    if inplace == False:
+        ary = arr.copy()
     else:
-        sorted_arr = arr.copy()
+        ary = arr
 
-    # TODO: sort sorted_arr in-place here
+    # get array size
+    n = len(ary)
 
-    return sorted_arr
+    # init max heap
+    for i in range((n // 2) - 1, -1, -1):
+        # build heap
+        heap_ops(ary, n, i)
+
+    # get max element and swap
+    for i in range(n - 1, 0, -1):
+        # swap largest element with last
+        ary[0], ary[i] = ary[i], ary[0]
+        # build heap from current state
+        heap_ops(ary, i, 0)
+
+    return ary
 
 
 def choice(arr: np.ndarray, size: int = 1) -> np.ndarray:
     """
-    Choose given number of random elements from an array, without replacement
+    Choose given number of random elements from an array, without replacement.
+    Fisher-Yates shuffling
 
     Parameters
     ----------
@@ -345,8 +397,17 @@ def choice(arr: np.ndarray, size: int = 1) -> np.ndarray:
     chosen : ndarray
         Randomly chosen elements from arr, shape (size,)
     """
-    # TODO: Implement your choice function here, e.g. by using Fisher-Yates shuffling
-    return arr[:size].copy()
+    ary = arr.copy()
+
+    # loop over idx
+    for i in range(size):
+        # get a nex idx from current through rng
+        mod = int((len(ary) - i) * rng.rand())
+        j = i + mod
+        # swap
+        ary[i], ary[j] = ary[j], ary[i]
+
+    return ary[:size]
 
 
 # SORT - END
@@ -381,19 +442,29 @@ def dn_dx(
         Same type and shape as x. Derivative of number density of
         satellite galaxies at given radius x.
     """
-    # TODO: Write the analytical derivative of n(x) here
-    return 0.0
+    # f(x) = A * Nsat * (x / b) ** (a - 3) * np.exp(-((x / b) ** c))
+    # analytical solution
+    top = (
+        A
+        * Nsat
+        * b**3
+        * (x / b) ** a
+        * (c * (x / b) ** c - a + 3)
+        * np.exp(-((x / b) ** c))
+    )
+    bot = x**4
+    return -(top / bot)
 
 
 def finite_difference(
-    function: callable, x: float | np.ndarray, h: float
+    func: callable, x: float | np.ndarray, h: float
 ) -> float | np.ndarray:
     """
     A building block to compute derivative using finite differences
 
     Parameters
     ----------
-    function : callable
+    func : callable
         Function to differentiate
     x : float | ndarray
         Value(s) to evaluate derivative at
@@ -405,38 +476,71 @@ def finite_difference(
     dy : float | ndarray
         Derivative at x
     """
-    # TODO: Implement finite difference method
-    return 0.0
+    # return central difference
+    return (func(x + h) - func(x - h)) / (2 * h)
 
 
 def compute_derivative(
-    function: callable,
+    func: callable,
     x: float | np.ndarray,
     h_init: float,
     # For Ridders use parameters below:
-    # d: float, # Factor by which to decrease h_init every iteration
-    # eps: float, # Relative error
-    # max_iters: int = 10, 3 Maximum number of iterations before exiting
+    d: float = 2.0,
+    eps: float = 1e-9,
+    max_iters: int = 5,
 ) -> float | np.ndarray:
     """
     Function to compute derivative
 
     Parameters
     ----------
-    function : callable
+    func : callable
         Function to differentiate
     x : float | ndarray
         Value(s) to evaluate derivative at
     h_init : float
         Initial step size for finite difference
+    d : float
+        Factor by which to decrease h_init every iteration, default = 2.0
+    eps : float
+        Relative error, default at 1e-9
+    max_iters : int
+        Maximum number of iterations before exiting, default = 5
 
     Returns
     -------
     df : float | ndarray
         Derivative at x
     """
-    # TODO: Implement derivative
-    return 0.0
+    # local repo
+    h = h_init
+    d_mat = np.zeros((max_iters, max_iters))
+    err_last = np.inf
+    best_estimate = d_mat[0, 0]
+
+    # fill 1st col
+    for i in range(max_iters):
+        d_mat[i, 0] = finite_difference(func, x, h)
+        h /= d
+
+    # fill the rest
+    for j in range(1, max_iters):
+        for i in range(max_iters - j):
+            top = d ** (2 * j) * d_mat[i + 1, j - 1] - d_mat[i, j - 1]
+            bot = d ** (2 * j) - 1
+            d_mat[i, j] = top / bot
+
+        # get err estimate
+        err = abs((d_mat[0, j] - d_mat[0, j - 1]) / d_mat[0, j])
+        if err < eps:
+            return d_mat[0, j]
+        if err > err_last * 1.2 and j > 1:
+            return best_estimate
+        # update
+        best_estimate = d_mat[0, j]
+        err_last = err
+
+    return best_estimate
 
 
 # DIFF - END
@@ -452,61 +556,68 @@ def main():
     c = 1.6
     Nsat = 100
     bounds = (0, 5)
-    xmin, xmax = 10**-4, 5
+    xmin, xmax = 10 ** (-4), 5
     N_generate = 10000
     xx = np.linspace(xmin, xmax, N_generate)
 
-    integrand = lambda x, a, b, c: 0.0  # insert the correct function
+    def integrand(x: float, a: float = a, b: float = b, c: float = c):
+        """Integrand function to replace original lambda fn call"""
+        if x != 0.0:
+            return 4.0 * np.pi * x**2 * (x / b) ** (a - 3) * np.exp(-((x / b) ** c))
+        else:
+            return 0.0
+
     integral, err = romberg_integrator(
-        integrand, bounds, order=2, args=(a, b, c), err=True
+        integrand, bounds, order=10, args=(a, b, c), err=True
     )
 
     # Normalisation
-    A = 1.0  # to be computed
+    A = 1.0 / integral
     with open("./output/a2q1_satellite_A.txt", "w") as f:
         f.write(f"{A:.12g}\n")
-    integrand = lambda x, a, b, c: 0.0  # replace by the correct function
-    integrated_Nsat = (
-        0.0  # replace by the correct integral, e.g. by calling your integrator
+
+    def integrand_nsat(
+        x: float,
+        a: float = a,
+        b: float = b,
+        c: float = c,
+        A: float = A,
+        Nsat: int = Nsat,
+    ):
+        """Integrand with Nsat"""
+        if x != 0.0:
+            return 4.0 * np.pi * x**2 * n(x, A, Nsat, a, b, c)
+        else:
+            return 0.0
+
+    integral_nsat = romberg_integrator(integrand_nsat, bounds, order=10, err=False)
+
+    def p_of_x(x: float):
+        """Get p(x)"""
+        return integrand(x) / integral
+
+    p_of_x_norm = p_of_x
+
+    random_samples = sampler(
+        p_of_x_norm, min_val=xmin, max_val=xmax, Nsamples=N_generate, args=()
     )
 
-    p_of_x = (
-        lambda x: 0.0
-    )  # replace by the normalised distribution of satellite galaxies as a function of x
-
-    # Numerically determine maximum to normalize p(x) for sampling
-    pmax = 0.0  # replace by taking the maximum value of p_of_x
-
-    p_of_x_norm = lambda x: 0.0  # replace by the normalised distribution
-    random_samples = np.zeros(
-        N_generate
-    )  # replace by your sampler(p_of_x_norm, min=xmin, max=xmax, Nsamples=N_generate, args=())
-
     edges = 10 ** np.linspace(np.log10(xmin), np.log10(xmax), 21)
+    counts, _ = np.histogram(random_samples, bins=edges)
+    bin_widths = np.diff(edges)
+    bin_centers = 0.5 * (edges[:-1] + edges[1:])
 
-    hist = np.histogram(
-        xmin + np.sort(np.random.rand(N_generate)) * (xmax - xmin), bins=edges
-    )[
-        0
-    ]  # replace!
-    hist_scaled = (
-        1e-3 * hist
-    )  # replace; this is NOT what you should be plotting, this is just a random example to get a plot with reasonable y values (think about how you *should* scale hist)
+    hist_scaled = (counts / bin_widths) / (N_generate / Nsat)
 
-    fig = plt.figure()
-    relative_radius = edges.copy()  # replace!
-    analytical_function = edges.copy()  # replace
+    relative_radius = bin_centers
+    analytical_function = np.array([Nsat * p_of_x(x) for x in relative_radius])
 
     fig1b, ax = plt.subplots()
-    ax.stairs(
-        hist_scaled, edges=edges, fill=True, label="Satellite galaxies"
-    )  # just an example line, correct this!
-    plt.plot(
-        relative_radius, analytical_function, "r-", label="Analytical solution"
-    )  # correct this according to the exercise!
+    ax.stairs(hist_scaled, edges=edges, fill=True, label="Satellite galaxies")
+    plt.plot(relative_radius, analytical_function, "r-", label="Analytical solution")
     ax.set(
         xlim=(xmin, xmax),
-        ylim=(10 ** (-3), 10),  # you may or may not need to change ylim
+        ylim=(1e-3, 1e3),  # you may or may not need to change ylim
         yscale="log",
         xscale="log",
         xlabel="Relative radius",
@@ -516,9 +627,11 @@ def main():
     plt.savefig("./plots/a2q1_my_solution_1b.png", dpi=600)
 
     # Cumulative plot of the chosen galaxies (1c)
-    chosen = xmin + np.sort(np.random.rand(Nsat)) * (xmax - xmin)  # replace!
+    chosen = choice(random_samples, size=100)
+    chosen = sort_array(chosen)
+
     fig1c, ax = plt.subplots()
-    ax.plot(chosen, np.arange(100))
+    ax.step(chosen, np.arange(100))
     ax.set(
         xscale="log",
         xlabel="Relative radius",
@@ -530,11 +643,12 @@ def main():
 
     x_to_eval = 1
     func_to_eval = lambda x: n(x, A, Nsat, a, b, c)
-    dn_dx_numeric = 0.0  # replace by your derivative, e.g. compute_derivative(func_to_eval, x_to_eval, h_init=0.1)
+
+    dn_dx_numeric = compute_derivative(func_to_eval, x_to_eval, h_init=0.1)
     dn_dx_analytic = dn_dx(x_to_eval, A, Nsat, a, b, c)
+
     with open("./output/a2q1_satellite_deriv_analytic.txt", "w") as f:
         f.write(f"{dn_dx_analytic:.12g}\n")
-
     with open("./output/a2q1_satellite_deriv_numeric.txt", "w") as f:
         f.write(f"{dn_dx_numeric:.12g}\n")
 
