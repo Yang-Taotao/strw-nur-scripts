@@ -6,6 +6,106 @@ Scripts for assignment 2 question 1
 import numpy as np
 import matplotlib.pyplot as plt
 
+# RNG - START
+####################
+## RNGS RNGS RNGS ##
+####################
+
+# local const
+MASK_64 = (1 << 64) - 1
+MASK_32 = (1 << 32) - 1
+XOR_A = 21
+XOR_B = 35
+XOR_C = 4
+MWC_A = 4294957665
+NUM_2_64 = 2**64
+
+
+def xor_ops(state: int) -> int:
+    """Do 64-bit XOR shift for rng gen"""
+    # do bit-wise ops through XOR-shift
+    # 1) x = x^(x>>a)
+    # 2) x = x^(x<<b)
+    # 3) x = x^(x>>c)
+    # we reapply 64 bit mask at every op to ensure consistency
+    state ^= state >> XOR_A
+    state &= MASK_64
+    state ^= state << XOR_B
+    state &= MASK_64
+    state ^= state >> XOR_C
+    state &= MASK_64
+
+    return state
+
+
+def mwc_ops(state: int) -> int:
+    """Do multiply with carry with base 2**32"""
+    # find lowest and highest bits in this state
+    lowest = state & MASK_32
+    highest = state >> 32
+    # combine into new state
+    # apply 32-bit mask for consistency
+    state = MWC_A * lowest + highest
+    state &= MASK_64
+
+    return state
+
+
+def rng_gen(state_xor: int, state_mwc: int) -> tuple[int, int, int]:
+    """Evolve rng with xor and mwc methods"""
+    # get next state from current state
+    nxt_state_xor = xor_ops(state_xor)
+    nxt_state_mwc = mwc_ops(state_mwc)
+
+    # use lower 32 bits for mwc
+    nxt_state_mwc_32 = nxt_state_mwc & MASK_32
+
+    # merge results
+    rng_val = nxt_state_xor ^ nxt_state_mwc_32
+
+    return nxt_state_xor, nxt_state_mwc, rng_val
+
+
+class NURARNG:
+    """Custom RNG for NURA assignment"""
+
+    # seed vs state
+    # seed -> something you start with, it doesn't change
+    # state -> computed based off of seed, it changes per niter
+
+    def __init__(self, seed: int = 42):
+        """Seed assignment init"""
+        # avoid zero seed for xor
+        if seed == 0:
+            seed = 42
+
+        seed &= MASK_64
+        self.state_xor = seed
+        self.state_mwc = seed
+
+    def nxt_iter(self):
+        """Get to next iter, given current iter results, return rng_val"""
+        nxt_state_xor, nxt_state_mwc, rng_val = rng_gen(self.state_xor, self.state_mwc)
+        self.state_xor = nxt_state_xor
+        self.state_mwc = nxt_state_mwc
+        return rng_val
+
+    def rand(self):
+        """Return normalized rng_val similar to np.random.rand()"""
+        return self.nxt_iter() / NUM_2_64
+
+
+rng = NURARNG()
+
+
+# RNG - END
+
+
+# NDEN - START
+####################
+## NDEN NDEN NDEN ##
+####################
+
 
 def n(
     x: float | np.ndarray, A: float, Nsat: float, a: float, b: float, c: float
@@ -34,14 +134,20 @@ def n(
         Same type and shape as x. Number density of satellite galaxies
         at given radius x.
     """
-    return 0  # insert your function
+    return A * Nsat * (x / b) ** (a - 3) * np.exp(-((x / b) ** c))
 
 
-##### Integrator block #####
+# NDEN - END
+
+# INTG - START
+####################
+## INTG INTG INTG ##
+####################
 
 
 # Below we provide a template for romberg integration
-# You can implement this or use another integration method based on some form of Richardson extrapolation
+# You can implement this
+# or use another integration method based on some form of Richardson extrapolation
 def romberg_integrator(
     func: callable, bounds: tuple, order: int = 5, err: bool = False, args: tuple = ()
 ) -> float | tuple[float, float]:
@@ -71,32 +177,80 @@ def romberg_integrator(
         (value, err), with err a first estimate of the (relative)
         error.
     """
-    # TODO: implement Romberg integration method
+    # local assignment
+    a, b = bounds
+    h = b - a
+    fa = func(a, *args)
+    fb = func(b, *args)
 
+    # romberg - init
+    r = np.zeros(order)
+    # get r_0
+    r[0] = (0.5 * h) * (fa + fb)
+
+    # romberg - fill 1st col
+    Np = 1
+    for i in range(1, order):
+        # new local assignment
+        the_sum = 0.0
+        delta = h
+        h /= 2.0
+        x = a + h
+
+        for _ in range(Np):
+            the_sum += func(x, *args)
+            x += delta
+
+        r[i] = 0.5 * (r[i - 1] + delta * the_sum)
+        Np *= 2
+
+    # romberg <-> neville
+    # reset assignmnet
+    Np = 1
+    # loop through col
+    for i in range(1, order):
+        Np *= 4
+        # loop through row
+        for j in range(0, order - i):
+            r[j] = (Np * r[j + 1] - r[j]) / (Np - 1)
+    # get r[0] as best estimate for integral
+    result = r[0]
+
+    # errors
     if err:
-        return 0.0, 0.0  # (value, error)
-    return 0.0
+        if order > 1:
+            error = np.abs(r[1] - r[0])
+        else:
+            error = 0.0
+        return result, error
+
+    return result
 
 
-#### Sampler block ####
+# INTG - END
+
+# SAMP - START
+####################
+## SAMP SAMP SAMP ##
+####################
 
 
 def sampler(
     dist: callable,
-    min: float,
-    max: float,
+    min_val: float,
+    max_val: float,
     Nsamples: int,
     args: tuple = (),
 ) -> np.ndarray:
     """
-    Sample a distribution using sampling method of your choice
+    Sample a distribution using sampling method of your choice - slice sampling
 
     Parameters
     dist : callable
         Distribution to sample
-    min :
+    min_val :
         Minimum value for sampling
-    max : float
+    max_val : float
         Maximum value for sampling
     Nsamples : int
         Number of samples
@@ -108,11 +262,54 @@ def sampler(
     sample: ndarray
         Values sampled from dist, shape (Nsamples,)
     """
+    # choose initial x with dist(x) > 0 -> say we start with a mid point x0
+    x = 0.5 * (min_val + max_val)
+    # endure initial dist(x0) > 0 -> loop until it is
+    while dist(x, *args) <= 0.0:
+        x = min_val + (max_val - min_val) * rng.rand()
 
-    return np.zeros(Nsamples)
+    # init samples
+    samples = []
+    # set step size for horizon tracing
+    delta = 0.01 * (max_val - min_val)
+
+    # generate y ~ U(0, dist(x)) = U(0, 1)*dist(x)
+    for _ in range(Nsamples):
+        px = dist(x, *args)
+        y = px * rng.rand()
+
+        # get horizon bound x0, x1
+        x0, x1 = x, x
+        while x0 > min_val and dist(x0, *args) > y:
+            x0 -= delta
+        while x1 < max_val and dist(x1, *args) > y:
+            x1 += delta
+
+        # get the new sample
+        while True:
+            x_sample = x0 + (x1 - x0) * rng.rand()
+            if dist(x_sample, *args) >= y:
+                break
+            # scale down to region
+            if x_sample < x:
+                x0 = x_sample
+            else:
+                x1 = x_sample
+
+        samples.append(x_sample)
+
+        # update x and goto next iter
+        x = x_sample
+
+    return np.array(samples)
 
 
-#### Sorting block ####
+# SAMP - END
+
+# SORT - START
+####################
+## SORT SORT SORT ##
+####################
 
 
 def sort_array(
@@ -167,7 +364,12 @@ def choice(arr: np.ndarray, size: int = 1) -> np.ndarray:
     return arr[:size].copy()
 
 
-##### Derivative block #####
+# SORT - END
+
+# DIFF - START
+####################
+## DIFF DIFF DIFF ##
+####################
 
 
 def dn_dx(
@@ -253,6 +455,14 @@ def compute_derivative(
     """
     # TODO: Implement derivative
     return 0.0
+
+
+# DIFF - END
+
+# MAIN - START
+####################
+## MAIN MAIN MAIN ##
+####################
 
 
 def main():
@@ -349,6 +559,12 @@ def main():
     with open("./output/a2q1_satellite_deriv_numeric.txt", "w") as f:
         f.write(f"{dn_dx_numeric:.12g}\n")
 
+
+# MAIN - END
+
+####################
+## EXEC EXEC EXEC ##
+####################
 
 if __name__ == "__main__":
     main()
