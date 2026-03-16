@@ -47,26 +47,85 @@
 \begin{document}
 \maketitle
 % ==================================================================================== %
-
-Write a short description of your solution in each section. 
-Explain your choices. Explicitly draw conclusions from your results.
-
-You can refer to selected lines of code where you think it is necessary. 
-However, you must provide the full code relevant to each (sub)question below it.
-
-Don't forget to describe your figures and mention what conclusions you draw from them!
-
-% ==================================================================================== %
 \section{Satellite galaxies around a massive central}
 
-  \subsection{(1a) Determining the normalization}
+  The number density is given by:
+  \begin{equation}
+    n(x) 
+    = A \langle N_\text{sat} \rangle 
+    \left(\frac{x}{b}\right)^{a-3} 
+    \exp{\left[-\left(\frac{x}{b}\right)^c\right]}
+  \end{equation}
 
-    Explain the integration method used (e.g. Romberg integration or another Richardson 
-    method). Describe how you implemented the spherical volume element \(dV\).
+  The general form of the 3D spherical integral for this question is given as:
+  \begin{equation}
+    \iiint_V n(x) dV = \langle N_\text{sat} \rangle
+  \end{equation}
+
+  Full code listed in appendix, with individual code snippets listed per question.
+
+% ==================================================================================== %
+  \subsection{(1a) Determining the normalization}
+    Let us consider integration of a sphere such that, when we integrate along some 
+    radius $r$, we build up the total volume by summing the thin spherical shells with
+    a surface area $S$ of:
+    \begin{equation}
+      S = 4 \pi r^2 
+      \Rightarrow V = \int S dr = \int 4 \pi r^2 dr 
+      \Rightarrow dV = 4 \pi r^2 dr 
+    \end{equation}
+
+    Since the number density $n(x)$ contains $x$ that is directly related to $r$, we see
+    that the $dV$ element is esstially proportional to $x$. Let us consider some 
+    geometric units where $r_\text{vir} = 1$, we therefore have $x=r$:
+    \begin{equation}
+      dV = 4 \pi r^2 dr ~;~ x=\frac{r}{r_\text{vir}}=r
+      \Rightarrow \frac{dr}{dx} = 1
+      \Rightarrow dV = 4 \pi x^2 dx
+    \end{equation}
+
+    Now, revisiting the general form of 3D spherical integral with a non-zero 
+    $N_\text{sat}$, we get:
+    \begin{equation}
+      4 \pi \int n(x) x^2 dx = \langle N_\text{sat} \rangle
+      \Rightarrow 
+      4 \pi \int \left(\frac{x}{b}\right)^{a-3} 
+      \exp{\left[-\left(\frac{x}{b}\right)^c\right]} x^2 dx 
+      = \frac{1}{A}
+    \end{equation}
+
+    Obviously, we see a pitfall in this evaluation as zero value on the left hand side 
+    would result in infinity for $A$, we therefore must make a special case for $x=0$.
+    Physically, there shouldn't be any satellites when we are trying to find them within 
+    zero radius. Therefore, we manually define $n(0) = 0$ in functions. This enables us 
+    to find $A$ from $x$.
+
+    For the numerical integrator, we employ Romberg integration routine as outlined in 
+    lecture slides (Lecture 4, p.15). Not only because Romberg routine is highly 
+    analogus to Richardson's extrapolation method, it is also demonstrated in previous 
+    assignment that the Neville's algorithm produce highly accurate results. Since 
+    Nevill's algorithm is analogus to Romberg's integration routine, we can build up
+    a table or matrix to iteratively refine towards the final result. That is, in a 
+    comparatively small number of iterations, we could efficiently reach reliable and 
+    accurate results. 
+    
+    In practice, we noticed that using the default provided order of two is insufficient 
+    in producing a reliable result, we therefore raised the order to a good number of 
+    ten to balance between efficiency and accuracy. And unlike the previous 
+    implementation of Neville's algorithm in previouos assignment, we favour inplace 
+    replacement of the results table/matrix, such that only the latest iteration 1-d 
+    array is kept. We obtain $A$ from the given parameter values for 
+    $a=2.4, b=0.25, c=1.6, x_\text{max}=5, \langle N_\text{sat} \rangle=100$:
+    \begin{equation}
+      4 \pi \int_{0}^{5} (4x)^{-0.6} 
+      \exp{\left[-(4x)^{1.6}\right]} x^2 dx 
+      = \frac{1}{A}
+    \end{equation}
+
+    The result is given below:
 
     \begin{table}[H]
     \centering
-    \caption{Normalization constant of the satellite galaxy profile.}
       \begin{tabular}{|c|}
         \hline
         Normalization constant \(A\) \\
@@ -74,48 +133,182 @@ Don't forget to describe your figures and mention what conclusions you draw from
         \input{output/a2q1_satellite_A.txt} \\
         \hline
       \end{tabular}
+      \caption{Normalization constant of the satellite galaxy profile.}
     \end{table}
 
-  \subsection{Code for the integrator}
+% ==================================================================================== %
+  \subsection{(1a) Code for the integrator}
     \lstinputlisting[language=Python]{output/a2q1_satellites_integrator_code.txt}
+    \pagebreak
 
+% ==================================================================================== %
   \subsection{(1b) Sampling the satellite distribution}
     Describe the sampling method used (e.g. rejection sampling). Explain how the random 
     number generator was implemented and how its randomness was tested.
 
+    The probability distribution in terms of number of galaxies $N(x)$ at radius $x$ is 
+    given as:
+    \begin{equation}
+      p(x) dx = \frac{N(x) dx}{\langle N_\text{sat} \rangle}
+    \end{equation}
+
+    Recall in part (a) that we evaluated the total number of galaxies via:
+    \begin{equation}
+      4 \pi \int n(x) x^2 dx = \langle N_\text{sat} \rangle
+      \Rightarrow 
+      4 \pi n(x) x^2 = N(x)
+    \end{equation}
+
+    We can therefore rewrite the probability distribution as:
+    \begin{equation}
+      p(x) dx = \frac{4 \pi n(x) x^2 dx}{\langle N_\text{sat} \rangle}
+      \Rightarrow
+      p(x) = \frac{4 \pi n(x) x^2}{\langle N_\text{sat} \rangle}
+    \end{equation}
+
+    Therefore, by envoking the relation in part (a) regarding the number density within
+    the range of radius $x$ at $x \in [0, 5)$, we get:
+    \begin{equation}
+      p(x) 
+      = \frac{4 \pi n(x) x^2}{\langle N_\text{sat} \rangle}
+      = \frac{4 \pi n(x) x^2}{\int 4 \pi n(x) x^2 dx}
+    \end{equation}
+
+    Effectively, we see that the probability distribution is a normalized distribution,
+    as the max probability occurs when all $x$ in range $x \in [0, 5)$ is sampled. 
+    
+    For this part of the question, we implemented slice sampling as outlined in lecture
+    slides (Lecture 5, p.16). We choose to implement slice sampling over other methods 
+    such as rejection sampling because it requires minimal supervision in its execution.
+    Additionally, since we are dealing with a normalized probability distribution, we 
+    expect the uniform distribtion needed for slice sampling could very conveniently 
+    lead to a $y$ value, where we could randomly try the neighboring space around its 
+    horizon to find the appropriate left-right bound for next iteration. Therefore, we 
+    can always guarentee that slice sampling would be successful in generating 
+    appropriate samples, especailly that the distribution $p(x)$ is expected to be 
+    continuous.
+
+    To introduce randomness for this operation, we created a custom random number 
+    generator that utilized both 64-bit XOR shift (XOR) and Multiply with Carry (MWC) 
+    methods as outlined in lecture slides (Lecture 5, p.14). We first create component 
+    functions that handles the operations at each iteration. For the XOR method, we 
+    first define a general binary mask to confine the results to 64 bits. The XOR 
+    function then moves each element is the state with a predefined bit-wise operation. 
+    In this specfic case, we move every element right by $21$ bits, then left by $35$ 
+    bits, and finally right by $4$ bits. For the MWC method, we find the lowest and 
+    highest bits with each given state, where an updated state is then generated via 
+    multiplication with a given number of $4294957665$. 
+    
+    At this time, these individual operations produces two states, both 64 bit. We then 
+    implement a wrapper fuction to return a random number generator value by merging 
+    the states together. This is done by taking the lower 32 bits from MWC and the full 
+    64-bit XOR output through an AND gate. That is, we have now the building blocks for 
+    handling one iteration of random number generation with state updates. We therefore
+    create a custom class to parse some initial seed to create the initial states for 
+    the two random number generation methods at zero iteration. In this class, we obtain
+    two different results, one being the combined XOR and MWC result as an integer 
+    $i \in [0, 2^{64}-1]$, the other as a float $f \in [0, 1]$. We include the following
+    figure to demonstrate the probability distribution of $10000$ samples generated by
+    the custom random number generator across $100$ bins.
+
     \begin{figure}[H]
       \centering
-      \includegraphics[width=0.85\textwidth]{plots/a2q1_my_solution_1b.png}
+      \includegraphics[width=0.9\textwidth]{plots/a2q1_rng_uniformity_test.png}
       \caption{
-        Comparison between the analytical satellite distribution \(N(x)\) and 
-        the histogram of 10 000 sampled satellite galaxies in logarithmic bins.
+        Comparison of custom random number generator output with unity.
       }
     \end{figure}
 
-    Does your sampled distribution agree with the analytical prediction?
+    We see that the custom random number generator does not perfectly produce a uniform 
+    distribution. However, by visual inspection, this is an acceptable random number 
+    generator for the purpose of this problem. It is important to note the difference 
+    between state and seed. The seed is the initial configuration that we define in 
+    order to create the initial states. The wrapper function use this common seed to 
+    produce the initial states, with which, the XOR and MWC methods iteratively update 
+    the states through their operations. That is, since we never re-seed the random 
+    number generators, we do not run the risk of these methods repeating itself 
+    intentionally.
+    
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.9\textwidth]{plots/a2q1_my_solution_1b.png}
+      \caption{
+        Comparison between the analytical satellite distribution \(N(x)\) 
+        and the histogram of 10000 sampled satellite galaxies in logarithmic bins.
+      }
+    \end{figure}
 
-  \subsection{Code for sampling}
+    Regarding the results as shown above, we see that the sampled results match with 
+    analytic solution as expected. This match is increasinly visible as we increse the 
+    number of bins used for plot generation. The interesting bit occurs at low relative
+    radius, where in the range of $x \in[10^{-4} , 10^{-2}]$, we observe very sparse 
+    amount of samples, this is consistent with slice sampleing method that we have
+    implmented, as the small random step we introduced in our function for finding 
+    the left and right bounds may not be sufficiently small to account for very small
+    $x$ values. However, it is reasonable to believe that the results are consistent
+    with peak values in the range of $x \in[10^{-2} , 10^{0}]$.  
+
+% ==================================================================================== %
+  \subsection{(1b) Code for rng}
+    \lstinputlisting[language=Python]{output/a2q1_satellites_rng_code.txt}
+
+% ==================================================================================== %
+  \subsection{(1b) Code for sampling}
     \lstinputlisting[language=Python]{output/a2q1_satellites_sampling_code.txt}
- 
+    \pagebreak
+
+% ==================================================================================== % 
   \subsection{(1c) Selecting and sorting satellites}
     Describe the selection of 100 galaxies (equal probability, no duplicates, no 
     rejection). Explain the sorting algorithm you used.
 
+    We implement heap sort as outlined in lecture slides (Lecture 6, p.14) for this 
+    part of the problem. We choose heap sort such that we could utilize resursion for 
+    sorting. That is, with heap sort always at $O\log{n}$, we can obtain a sorted array 
+    with large length reasonably fast. Additionally, we could do this completely 
+    inplace. This is not only because that we need to rebuild a heap after each swap,
+    but also that we could save a little bit of computational resources by doing so. By 
+    implementing sorting algorithm on the samples, we now arrange these sampled galaxies
+    in an orderly fashion. And because the custom random number generator is never 
+    re-seeded, we do not expect a galaxy with the same configuration to appear in this 
+    sorted array of samples. 
+
     \begin{figure}[H]
       \centering
-      \includegraphics[width=0.8\textwidth]{plots/a2q1_my_solution_1c.png}
+      \includegraphics[width=0.9\textwidth]{plots/a2q1_my_solution_1c.png}
       \caption{Cumulative number of selected galaxies as a function of relative radius.}
     \end{figure}
 
-  \subsection{Code for selection and sorting}
+    In the figure above, we demonstrate the cumulative number of selected galaxies. We 
+    observe that at lower relative radius, the number of galaxies chosen is low. This is
+    expected behavior, as the number of galaxies sampled at low relative readius is 
+    marginal comparing to a higher relative radius regime. We see that the majority of 
+    galaxies are picked as relative radius approaches $x \in [10^{-1}, 10^{0}]$, this 
+    coincides with the analytic solutions of galaxy number density. For choosing, we
+    again introduce the custom random number generator. By looping over the sorted 
+    samples array, we can pick a random index and swap the sample with the last element 
+    of the sorted array. This follows Fisher-Yates shuffling scheme, such that, by 
+    reducing the range to loop over at each iteration, we have removed the already 
+    picked galaxy from the loot pool of the next selection iteration. Since the custom 
+    random number generator is not a perfect one with uniform distribtion, we cannot 
+    strictly say that all galaxies are to be picked with equal probability, however, by 
+    translating the generated random number to integer index by multiplying with the 
+    current array length, we are effectively outputting a single integer that is 
+    reasonaly random. 
 
+% ==================================================================================== %
+  \subsection{(1c) Code for selection and sorting}
     \lstinputlisting[language=Python]{output/a2q1_satellites_selection_code.txt}
+    \pagebreak
 
+% ==================================================================================== %
   \subsection{(1d) Numerical derivative}
+
+    The results of derivatives produced by analytical and numerical solutions are listed
+    below:
 
     \begin{table}[H]
     \centering
-    \caption{Derivative of the satellite number density at \(x=1\).}
       \begin{tabular}{|c|c|}
         \hline
         Method & Value \\
@@ -124,13 +317,37 @@ Don't forget to describe your figures and mention what conclusions you draw from
         Numerical & \input{output/a2q1_satellite_deriv_numeric.txt} \\
         \hline
       \end{tabular}
+      \caption{Derivative of the satellite number density at \(x=1\).}
     \end{table}
 
-    Do your analytical and numerical derivatives agree? Why?
+    We implemented Ridders' method as shown in lecture slides (Lecture 5, p.8) for 
+    derivative calculation. For finite difference, we use a step size $h$ for some 
+    function $f(x)$:
+    \begin{equation}
+      \delta = \frac{f(x+h)-f(x-h)}{2h}
+    \end{equation}
 
-  \subsection{Code for derivative calculation}
+    We see that these two results are consistent to $12$ figures. Physically, this is 
+    representative of the number density of galaxies decreasing as radius approaches
+    the maximum. Recall that $x= r/r_\text{vir}$, as $x \righarrow 1$, we expect the 
+    number density to fall drastically, just as the negative value shown in the table 
+    above. In terms of error handling, we manually defined a $10^{-9}$ value of
+    difference between the current and last estimation. And unlike the routines in 
+    previous parts of this question, we do need to use a matrix to store the 
+    extrapolation table, as this is the simplist to write down for indexing. In terms of 
+    parameters, we let the bounds decrease by a factor of $2$ at each iteration, with 
+    max iterations being $5$. We could raise the number of max iterations but the 
+    current output is consistent enough that it may not be necessary. The same can be
+    said for the manually defined error tolerance, we could further reduce it if 
+    needed, such that this routine would continue to refine the estimation more and 
+    more.
+
+% ==================================================================================== %
+  \subsection{(1d) Code for derivative calculation}
     \lstinputlisting[language=Python]{output/a2q1_satellites_derivative_code.txt}
+    \pagebreak
 
+% ==================================================================================== %
 \section{Heating and cooling in HII regions}
 
   \subsection{(2a) Photoionization heating and radiative recombination cooling}
@@ -174,6 +391,14 @@ Don't forget to describe your figures and mention what conclusions you draw from
   \subsection{Code for Exercise 2}
     \lstinputlisting[language=Python]{output/a2q2_heatingcooling_code.txt} 
 
+% ==================================================================================== %
 \section{Conclusions}
 
+  \pagebreak
+% ==================================================================================== %
+\appendix
+\section*{Code Listing for Question 1}
+  \lstinputlisting[language=Python]{output/a2q1_all_code.txt} 
+
 \end{document}
+% ==================================================================================== %

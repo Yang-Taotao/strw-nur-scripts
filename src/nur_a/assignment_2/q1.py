@@ -71,7 +71,7 @@ class NURARNG:
     # seed -> something you start with, it doesn't change
     # state -> computed based off of seed, it changes per niter
 
-    def __init__(self, seed: int = 42):
+    def __init__(self, seed: int = 42) -> None:
         """Seed assignment init"""
         # avoid zero seed for xor
         if seed == 0:
@@ -81,19 +81,36 @@ class NURARNG:
         self.state_xor = seed
         self.state_mwc = seed
 
-    def nxt_iter(self):
+    def nxt_iter(self) -> int:
         """Get to next iter, given current iter results, return rng_val"""
         nxt_state_xor, nxt_state_mwc, rng_val = rng_gen(self.state_xor, self.state_mwc)
         self.state_xor = nxt_state_xor
         self.state_mwc = nxt_state_mwc
         return rng_val
 
-    def rand(self):
+    def rand(self) -> float:
         """Return normalized rng_val similar to np.random.rand()"""
         return self.nxt_iter() / NUM_2_64
 
 
 rng = NURARNG()
+
+
+def plot_rng_uniformity(n_bins: int = 100, n_samples: int = 10000) -> None:
+    """Plot rng results"""
+    # sample gen
+    samples = np.array([rng.rand() for _ in range(n_samples)])
+
+    fig, ax = plt.subplots()
+    ax.hist(samples, bins=n_bins, density=True, alpha=0.6, label="Samples")
+    ax.axhline(1.0, color="r", linestyle="--", label="Uniform PDF")
+
+    ax.set_xlabel("Value")
+    ax.set_ylabel("Probability Density")
+    ax.legend()
+
+    fig.savefig("./plots/a2q1_rng_uniformity_test.png", dpi=600)
+    plt.close(fig)
 
 
 # RNG - END
@@ -399,6 +416,11 @@ def choice(arr: np.ndarray, size: int = 1) -> np.ndarray:
     """
     ary = arr.copy()
 
+    if size > len(ary):
+        raise ValueError(
+            "Invalid slice size for choice(), slcie size must be leq than array size."
+        )
+
     # loop over idx
     for i in range(size):
         # get a nex idx from current through rng
@@ -602,7 +624,7 @@ def main():
         p_of_x_norm, min_val=xmin, max_val=xmax, Nsamples=N_generate, args=()
     )
 
-    edges = 10 ** np.linspace(np.log10(xmin), np.log10(xmax), 21)
+    edges = 10 ** np.linspace(np.log10(xmin), np.log10(xmax), 51)
     counts, _ = np.histogram(random_samples, bins=edges)
     bin_widths = np.diff(edges)
     bin_centers = 0.5 * (edges[:-1] + edges[1:])
@@ -612,8 +634,11 @@ def main():
     relative_radius = bin_centers
     analytical_function = np.array([Nsat * p_of_x(x) for x in relative_radius])
 
+    # 1b plot gen
     fig1b, ax = plt.subplots()
-    ax.stairs(hist_scaled, edges=edges, fill=True, label="Satellite galaxies")
+    ax.stairs(
+        hist_scaled, edges=edges, fill=True, alpha=0.6, label="Satellite galaxies"
+    )
     plt.plot(relative_radius, analytical_function, "r-", label="Analytical solution")
     ax.set(
         xlim=(xmin, xmax),
@@ -625,6 +650,7 @@ def main():
     )
     ax.legend()
     plt.savefig("./plots/a2q1_my_solution_1b.png", dpi=600)
+    plt.close(fig1b)
 
     # Cumulative plot of the chosen galaxies (1c)
     chosen = choice(random_samples, size=100)
@@ -640,6 +666,9 @@ def main():
         ylim=(0, 100),
     )
     plt.savefig("./plots/a2q1_my_solution_1c.png", dpi=600)
+    plt.close(fig1c)
+
+    plot_rng_uniformity()
 
     x_to_eval = 1
     func_to_eval = lambda x: n(x, A, Nsat, a, b, c)

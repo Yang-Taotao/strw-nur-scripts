@@ -92,6 +92,8 @@ sed -n '/INTG - START/,/INTG - END/p' \
 	./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_integrator_code.txt
 sed -n '/SAMP - START/,/SAMP - END/p' \
 	./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_sampling_code.txt
+sed -n '/RNG - START/,/RNG - END/p' \
+	./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_rng_code.txt
 sed -n '/SORT - START/,/SORT - END/p' \
 	./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_selection_code.txt
 sed -n '/DIFF - START/,/DIFF - END/p' \
