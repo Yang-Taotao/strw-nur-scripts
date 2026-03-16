@@ -97,6 +97,8 @@ sed -n '/SORT - START/,/SORT - END/p' \
 sed -n '/DIFF - START/,/DIFF - END/p' \
 	./src/nur_a/assignment_2/q1.py > ./output/a2q1_satellites_derivative_code.txt
 
+cat ./src/nur_a/assignment_2/q1.py > ./output/a2q1_all_code.txt
+
 echo "INFO: running scripts to solve assignment2-q2..."
 python3 ./src/nur_a/assignment_2/q2.py # Q2_Heating_and_cooling.py
 

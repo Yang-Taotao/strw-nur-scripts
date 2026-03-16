@@ -40,16 +40,16 @@ Comments
 
 ## file structure
 
+After running `run.sh` some folders will get created accordingly.
+
 ```sh
 .
 ├── src                     # source code
 │   └── nur_a
 │       ├── assignment_1
-│       ├── assignment_2
-│       └── tutorial
-├── data                    # data: text based
-├── media                   # data: images for tutorials and assignments
+│       └── assignment_2
 ├── notes                   # lecture notes
+├── data                    # data: text based
 ├── output                  # output: text based, code, calculations
 ├── plots                   # output: plots
 ├── tex                     # latex files and rendered pdf
