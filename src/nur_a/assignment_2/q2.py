@@ -6,39 +6,52 @@ import numpy as np
 
 # Constants (mind the units!)
 
-psi = 0.929
-Tc = 1e4  # K
+PSI = 0.929
+TC = 1e4  # K
 Z = 0.015
-k = 1.38e-16  # erg/K
-aB = 2e-13  # cm^3 / s
-A = 5e-10
-xi = 1e-15
+K = 1.38e-16  # erg K^(-1)
+AB = 2e-13  # cm^(3) s^(-1)
+A = 5e-10  # erg
+XI = 1e-15  # s^(-1)
 
 
-# There's no need for nH nor ne as they cancel out
-def equilibrium1(T, Z, Tc, psi):
-    return psi * Tc * k - (0.684 - 0.0416 * np.log(T / (1e4 * Z * Z))) * T * k
+def equilibrium1(t: float, z: float = Z, tc: float = TC, psi: float = PSI) -> float:
+    """Equilibrium fn 1 for photonization heating and recombination - simple case"""
+    # simple case
+    # fn = Gamma - Lambda
+    return (psi * tc * K) - ((0.684 - 0.0416 * np.log(t / (1e4 * z * z))) * t * K)
 
 
-def equilibrium2(T, Z, Tc, psi, nH, A, xi, aB):
+def equilibrium2(
+    t: float,
+    nh: float,
+    z: float = Z,
+    tc: float = TC,
+    psi: float = PSI,
+    a: float = A,
+    xi: float = XI,
+    ab: float = AB,
+) -> float:
+    """Equilibrium fn 2 for photonization heating and recombination - complex case"""
+    # full eq with other factors
+    # fn = (Gamma_pe + Gamma_cr + Gamma_mhd) - (Lambda_rr + Lambda_ff)
     return (
         (
-            psi * Tc
-            - (0.684 - 0.0416 * np.log(T / (1e4 * Z * Z))) * T
-            - 0.54 * (T / 1e4) ** 0.37 * T
+            # Gamma_pe
+            psi * tc
+            # Lambda_rr
+            - (0.684 - 0.0416 * np.log(t / (1e4 * z * z))) * t
+            # Lambda_ff
+            - 0.54 * (t / 1e4) ** 0.37 * t
         )
-        * k
-        * nH
-        * aB
-        + A * xi
-        + 8.9e-26 * (T / 1e4)
+        * K
+        * nh
+        * ab
+        # Gamma_cr
+        + a * xi
+        # Gamma_mhd
+        + 8.9e-26 * (t / 1e4)
     )
-
-
-# Derivative function, might be useful if using Newton-Raphson method for root finding
-# def equilibrium2_deriv(T, nH):
-#     # TODO: Compute derivative of equilibrium2 with respect to T
-#     return 0.0
 
 
 #### root finder ####
@@ -52,7 +65,7 @@ def root_finder(
     max_iters: int = 100,
 ) -> tuple[float, float, float]:
     """
-    Find a root of a function
+    Find a root of a function - Brent's method
 
     Parameters
     ----------
