@@ -118,15 +118,13 @@ def plot_rng_uniformity(n_bins: int = 100, n_samples: int = 10000) -> None:
 # NDEN - START
 
 
-def n(
-    x: float | np.ndarray, A: float, Nsat: float, a: float, b: float, c: float
-) -> float | np.ndarray:
+def n(x: float, A: float, Nsat: float, a: float, b: float, c: float) -> float:
     """
     Number density profile of satellite galaxies
 
     Parameters
     ----------
-    x : float | ndarray
+    x : float
         Radius in units of virial radius; x = r / r_virial
     A : float
         Normalisation
@@ -141,7 +139,7 @@ def n(
 
     Returns
     -------
-    float | ndarray
+    float
         Same type and shape as x. Number density of satellite galaxies
         at given radius x.
     """
@@ -158,7 +156,7 @@ def n(
 # or use another integration method based on some form of Richardson extrapolation
 def romberg_integrator(
     func: callable, bounds: tuple, order: int = 5, err: bool = False, args: tuple = ()
-) -> float | tuple[float, float]:
+) -> float:
     """
     Romberg integration method
 
@@ -437,9 +435,7 @@ def choice(arr: np.ndarray, size: int = 1) -> np.ndarray:
 # DIFF - START
 
 
-def dn_dx(
-    x: float | np.ndarray, A: float, Nsat: float, a: float, b: float, c: float
-) -> float | np.ndarray:
+def dn_dx(x: float, A: float, Nsat: float, a: float, b: float, c: float) -> float:
     """
     Analytical derivative of number density provide
 
@@ -460,7 +456,7 @@ def dn_dx(
 
     Returns
     -------
-    float | ndarray
+    float
         Same type and shape as x. Derivative of number density of
         satellite galaxies at given radius x.
     """
@@ -478,9 +474,7 @@ def dn_dx(
     return -(top / bot)
 
 
-def finite_difference(
-    func: callable, x: float | np.ndarray, h: float
-) -> float | np.ndarray:
+def finite_difference(func: callable, x: float, h: float) -> float:
     """
     A building block to compute derivative using finite differences
 
@@ -488,14 +482,14 @@ def finite_difference(
     ----------
     func : callable
         Function to differentiate
-    x : float | ndarray
+    x : float
         Value(s) to evaluate derivative at
     h : float
         Step size for finite difference
 
     Returns
     -------
-    dy : float | ndarray
+    dy : float
         Derivative at x
     """
     # return central difference
@@ -504,13 +498,13 @@ def finite_difference(
 
 def compute_derivative(
     func: callable,
-    x: float | np.ndarray,
+    x: float,
     h_init: float,
     # For Ridders use parameters below:
     d: float = 2.0,
     eps: float = 1e-9,
     max_iters: int = 5,
-) -> float | np.ndarray:
+) -> float:
     """
     Function to compute derivative
 
@@ -518,7 +512,7 @@ def compute_derivative(
     ----------
     func : callable
         Function to differentiate
-    x : float | ndarray
+    x : float
         Value(s) to evaluate derivative at
     h_init : float
         Initial step size for finite difference
@@ -531,7 +525,7 @@ def compute_derivative(
 
     Returns
     -------
-    df : float | ndarray
+    df : float
         Derivative at x
     """
     # local repo
