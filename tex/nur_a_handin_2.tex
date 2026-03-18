@@ -355,16 +355,16 @@
     Newton-Raphson).
 
     \begin{table}[H]
-    \centering
-    \caption{Equilibrium temperature for the simplified heating-cooling model.}
-      \begin{tabular}{|c|c|c|}
+      \centering
+      \begin{tabular}{|c|c|c|c|}
         \hline
-        Temperature [K] & Absolute error & Relative error \\
+        Temperature [K] & Absolute error & Relative error & Iterations\\
         \hline
         \input{output/a2q2_equilibrium_temp_simple.txt}
         \\
         \hline
       \end{tabular}
+      \caption{Equilibrium temperature for the simplified heating-cooling model.}
     \end{table}
 
     How many iterations it took? Discuss the convergence of your root finder.
@@ -373,16 +373,16 @@
 
     \begin{table}[H]
       \centering
-      \caption{Equilibrium temperature for different gas densities.}
-      \begin{tabular}{|c|c|}
+      \begin{tabular}{|c|c|c|c|c|}
         \hline
-        Density \(n_H\) [cm\(^{-3}\)] & Equilibrium temperature [K] \\
+        Density \(n_H\) [cm\(^{-3}\)] & Equilibrium temperature [K] & Absolute error & Relative error & Iterations\\
         \hline
         $10^{-4}$ & \input{output/a2q2_equilibrium_low_density.txt} \\
         $1$ & \input{output/a2q2_equilibrium_mid_density.txt} \\
         $10^4$ & \input{output/a2q2_equilibrium_high_density.txt} \\
         \hline
       \end{tabular}
+      \caption{Equilibrium temperature for different gas densities.}
     \end{table}
 
     Discuss the results. What is the difference for the low, intermediate and high gas 
