@@ -349,11 +349,53 @@
 
 % ==================================================================================== %
 \section{Heating and cooling in HII regions}
-
+% ==================================================================================== %
   \subsection{(2a) Photoionization heating and radiative recombination cooling}
-    Describe the implementation of your root-finding method (e.g. bisection, 
-    Newton-Raphson).
+    We have the following two function for equalibrium calculation. The first is a 
+    simplified case that focus on HII regions with only one heating and cooling 
+    mechanism. We start with the heating produced by photoionization.
+    \begin{equation}
+      \Gamma_\text{pe} 
+      = \alpha_\text{B} n_\text{H} n_\text{e} \psi k_\text{B} T_\text{c}
+    \end{equation}
 
+    The radiative recombination is given with:
+    \begin{equation}
+      \Lambda_\text{rr} 
+      = \alpha_\text{B} n_\text{H} n_\text{e} \langle E_\text{rr} \rangle
+      = \alpha_\text{B} n_\text{H} n_\text{e} 
+      \left[0.684-0.0416 \ln{\left(\frac{T_4}{Z^2}\right)}\right] k_\text{B} T
+    \end{equation}
+
+    Therefore, the equbilibrium is located when $\Gamma_\text{pe} = \Lambda_\text{rr}$:
+    \begin{equation}
+      \Gamma_\text{pe} - \Lambda_\text{rr} = 0
+      \Rightarrow
+      \alpha_\text{B} n_\text{H} n_\text{e}
+      \left(
+        \psi k_\text{B} T_\text{c} -  
+        \left[0.684-0.0416 \ln{\left(\frac{T_4}{Z^2}\right)}\right] k_\text{B} T
+      \right) = 0
+    \end{equation}
+
+    We see that this equlirbium problem becomes a root finding proble,. That is, we 
+    can employ Brent's method as illustrated in lecture slides (Lecture 6, p.25) for 
+    root finding. We choose Brent's method over Newton-Raphson for the reliability of
+    Brent's method in producing a root when the initial bracket for root estimation
+    is properly set. That is, when the initial bracket is set to contain at least one 
+    root, we expect Brent's method to always converge at some iteration, mitigating the 
+    risk of divergence in Newton-Raphson method, where explicit analytical derivative 
+    calculations are needed. It is worth noting that having exactly one root within the 
+    bracket would produce the most reliable result.
+    
+    Additionally, due to Brent's method calls for bisection and secant method when 
+    conditions are met, we could quickly iterate to find the appropriate root for some 
+    function. In implementation, Brent's method employs bisection algorithm to narrow 
+    down the bracket to a smaller region, before quadratic and secant method are 
+    deployed to refine the estimates. We calculated that the equilibrium tempearature 
+    $T \simeq 3.25 \times 10^4$ K, with absolute and relative error shown in the table 
+    below: 
+    
     \begin{table}[H]
       \centering
       \begin{tabular}{|c|c|c|c|}
@@ -367,15 +409,42 @@
       \caption{Equilibrium temperature for the simplified heating-cooling model.}
     \end{table}
 
-    How many iterations it took? Discuss the convergence of your root finder.
+    We were able to locate this root estimation at iteration index $29$. We designed the
+    implementation of Brent's method so that it could run recursivly, with some
+    pre-defined maximum iterations number as safety to prevent endless recursion. The
+    general pipeline is outlined in the code listing for this problem, with full code 
+    listed in the appendix. In short, we employed a similar approach inspired by the 
+    random number generator in question 1, where we utilize states for iterative 
+    calculations. The stopping conditions for this implementation of Brent's method is
+    set so that either: 1) an exact root is found, 2) maximum number of recursion is 
+    reached, or 3) a bracket width is refined to something smaller than the estimated
+    tolerance. And in order to make sure that the bracket is consistently valid, we 
+    check and update the bracket at every iteration.
 
+% ==================================================================================== %
   \subsection{(2b) More realistic model}
+
+    We parsed in the complex version of equlibrium function in part (b) of this 
+    question. The general form of equilibrium is given by:
+    
+    \begin{equation}
+      (\Gamma_\text{pe} + \Gamma_\text{cr} + \Gamma_\text{mhd})
+      - (\Lambda_\text{rr} + \Lambda_\text{ff}) = 0
+    \end{equation}
+
+    With the default values supplied by the problem, we perform root finding for this
+    function with the same routine deployed for part (a). The results are shown in the 
+    table below:
 
     \begin{table}[H]
       \centering
       \begin{tabular}{|c|c|c|c|c|}
         \hline
-        Density \(n_H\) [cm\(^{-3}\)] & Equilibrium temperature [K] & Absolute error & Relative error & Iterations\\
+        Density \(n_\text{H}\) [cm\(^{-3}\)] 
+        & Equilibrium temperature [K] 
+        & Absolute error 
+        & Relative error 
+        & Iterations\\
         \hline
         $10^{-4}$ & \input{output/a2q2_equilibrium_low_density.txt} \\
         $1$ & \input{output/a2q2_equilibrium_mid_density.txt} \\
@@ -385,20 +454,63 @@
       \caption{Equilibrium temperature for different gas densities.}
     \end{table}
 
-    Discuss the results. What is the difference for the low, intermediate and high gas 
-    density?
+    As we can see, for low gas density, the absolute error is highly pronounced, while 
+    relatively intermediate to high density gas produce more consistent and meaningful
+    results. We show the equalibrium function evaluation for different $n_\text{H}$
+    configuration in the figure below, alongside the roots found through Brent's 
+    method:
 
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=0.9\textwidth]{plots/a2q2_equilibrium_function.png}
+      \caption{
+        Equilirbium function evaluation with different $n_\text{H}$ configuration.
+        Black vertical lines indicate root found with Brent's method. 
+      }
+    \end{figure}
+    
+    It is observed that, for these three different configurations of gas 
+    densities, our implementation of Brent's method converged within 60 iterations. 
+    We manually defined a maxmimum iteration number at $1000$, the very wide initial 
+    bracket setting of $x\in[1, 1\times10^{15}]$ could add to the initial number of 
+    iterations, as repeated bisections were needed to narrow the bracket down to a 
+    reasonable width for secant and quadratic methods to kick in. By plotting 
+    $\Gamma - \Lambda$ against $T$ on log space, we perform a sanity check for the 
+    calculated roots from Brent's method, where slop of $\Gamma - \Lambda$ approaches
+    $-\infty$ as $T$ apparoches the found root of zero crossing. This is also good for
+    visualizing that, for the selected bracket, we are indeed dealing with excatly one 
+    root.
+
+% ==================================================================================== %
   \subsection{Code for Exercise 2}
     \lstinputlisting[language=Python]{output/a2q2_heatingcooling_code.txt} 
+    \pagebreak
 
 % ==================================================================================== %
 \section{Conclusions}
-
+  We have implemented Heap Sort, Romberg intergration routine, and Brent's method for 
+  root finding for this problem set. From our assessments of code implementation 
+  choices and figures produced, we are able to produce consistent and reliable results
+  within relatively short amount of time. We found that, similar with the previous 
+  problem set, it is helpful to visualize the algorithm on paper before implmentation.
+  Some notable difficulties in coding up the routines in this problem set includes 
+  the initial implmentation of recursion for heap sorting, and writing out the steps 
+  needed for Brent's method. It is also possible that the current implementation may 
+  be applicable to extreme cases, where recursive runs may be halted due to resource
+  concerns.
   \pagebreak
+
 % ==================================================================================== %
 \appendix
-\section*{Code Listing for Question 1}
+% ==================================================================================== %
+\section{Full Code Listing for Question 1}
   \lstinputlisting[language=Python]{output/a2q1_all_code.txt} 
+  \pagebreak
+
+% ==================================================================================== %
+\section{Full Code Listing for Question 2}
+  \lstinputlisting[language=Python]{output/a2q2_all_code.txt} 
+  \pagebreak
 
 \end{document}
 % ==================================================================================== %

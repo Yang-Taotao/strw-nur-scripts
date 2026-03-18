@@ -3,8 +3,10 @@ Scripts for assignment 2 question 2
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 
-# Constants (mind the units!)
+# ==================================================================================== #
+# EQFN - START
 
 PSI = 0.929
 TC = 1e4  # K
@@ -54,7 +56,9 @@ def equilibrium2(
     )
 
 
-#### root finder ####
+# EQFN - END
+# ==================================================================================== #
+# ROOT - START
 
 
 def root_finder(
@@ -267,10 +271,15 @@ def root_finder(
     return evolve(state)
 
 
-#### main call ####
+# ROOT - END
+# ==================================================================================== #
+# MAIN - START
 
 
 def main():
+
+    # fig init
+    fig, ax = plt.subplots()
 
     #### 2a ####
     # Initial bracket
@@ -284,13 +293,20 @@ def main():
     #### 2b ####
     # Initial bracket
     bracket_2b = (1, 1e15)
+    # density
+    density = [1e-4, 1, 1e4]
+    # temperature array
+    t_ary = np.logspace(1, 15, 10000)
 
-    for nH in [1e-4, 1, 1e4]:
+    for nH in density:
 
+        # make lambda fn for nH assignment
         temp_func = lambda t, nh=nH: equilibrium2(t, nh)
 
+        # results
         root, aerr, rerr, niter = root_finder(func=temp_func, bracket=bracket_2b)
 
+        # write
         if nH == 1e-4:
             with open("./output/a2q2_equilibrium_low_density.txt", "w") as f:
                 f.write(f"{root:.12g} & {aerr:.3e} & {rerr:.3e} & {niter}")
@@ -301,6 +317,22 @@ def main():
             with open("./output/a2q2_equilibrium_high_density.txt", "w") as f:
                 f.write(f"{root:.12g} & {aerr:.3e} & {rerr:.3e} & {niter}")
 
+        # get f(t)
+        f_t = temp_func(t_ary)
+
+        # plot gen
+        ax.loglog(t_ary, f_t, label=f"$n_H = {nH:.0e}$ cm$^{{-3}}$")
+        ax.axvline(root, color="black", alpha=0.6)
+
+    ax.set_xlabel("Temperature $T$ K")
+    ax.set_ylabel("Equalibrium function evaluation")
+    ax.legend()
+    plt.savefig("./plots/a2q2_equilibrium_function.png", dpi=600)
+    plt.close(fig)
+
+
+# MAIN - END
+# ==================================================================================== #
 
 if __name__ == "__main__":
     main()
